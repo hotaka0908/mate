@@ -79,9 +79,10 @@ const CAPABILITIES = [
     name: "会話する",
     icon: "💬",
     apps: [
-      { name: "Slack", capability: "チャンネルでメッセージを送受信" },
-      { name: "Discord", capability: "サーバーでボイス・テキストチャット" },
-      { name: "Teams", capability: "ビデオ通話・チャット" },
+      { name: "Maestro", capability: "タスク管理・AIオーケストレーション", isMain: true },
+      { name: "GPT-4", capability: "OpenAI 高度な推論・文章生成" },
+      { name: "Claude 3", capability: "Anthropic 長文理解・分析" },
+      { name: "Gemini", capability: "Google マルチモーダル対応" },
     ],
   },
   {
@@ -377,11 +378,11 @@ export default function Home() {
                 />
               </div>
 
-              {/* ConductorAI - 中央 */}
-              <div className={`relative self-end ${isWorking ? "animate-bounce" : ""}`}>
+              {/* ConductorAI - 中央 (Maestro) */}
+              <div className={`relative self-end flex flex-col items-center ${isWorking ? "animate-bounce" : ""}`}>
                 <img
                   src="/conductor.png"
-                  alt="Conductor"
+                  alt="Maestro"
                   className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""}`}
                 />
                 {isWorking && (
@@ -392,6 +393,7 @@ export default function Home() {
                     </span>
                   </div>
                 )}
+                <div className="text-amber-400 font-semibold text-lg tracking-wide">Maestro</div>
               </div>
 
               {/* CoderAI - 右 */}
