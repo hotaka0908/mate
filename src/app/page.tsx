@@ -373,7 +373,7 @@ export default function Home() {
                 <img
                   src="/MemoryAI.png"
                   alt="Memory AI"
-                  className={`w-64 h-64 object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" : ""}`}
+                  className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" : ""}`}
                 />
               </div>
 
@@ -399,7 +399,7 @@ export default function Home() {
                 <img
                   src="/CoderAI.png"
                   alt="Coder AI"
-                  className={`w-64 h-64 object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" : ""}`}
+                  className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" : ""}`}
                 />
               </div>
             </div>
