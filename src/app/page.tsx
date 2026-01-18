@@ -367,20 +367,41 @@ export default function Home() {
         <div className="w-full max-w-2xl">
           {/* キャラクター */}
           <div className="flex flex-col items-center mb-6">
-            <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
-              <img
-                src="/conductor.png"
-                alt="Conductor"
-                className={`w-[512px] h-[512px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
-              />
-              {isWorking && (
-                <div className="absolute -top-2 -right-2">
-                  <span className="relative flex h-4 w-4">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-4 w-4 bg-[var(--primary)]"></span>
-                  </span>
-                </div>
-              )}
+            <div className="flex items-end justify-center gap-4">
+              {/* MemoryAI - 左 */}
+              <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+                <img
+                  src="/MemoryAI.png"
+                  alt="Memory AI"
+                  className={`w-64 h-64 object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" : ""}`}
+                />
+              </div>
+
+              {/* ConductorAI - 中央 */}
+              <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+                <img
+                  src="/conductor.png"
+                  alt="Conductor"
+                  className={`w-[512px] h-[512px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
+                />
+                {isWorking && (
+                  <div className="absolute -top-2 -right-2">
+                    <span className="relative flex h-4 w-4">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-4 w-4 bg-[var(--primary)]"></span>
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* CoderAI - 右 */}
+              <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+                <img
+                  src="/CoderAI.png"
+                  alt="Coder AI"
+                  className={`w-64 h-64 object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" : ""}`}
+                />
+              </div>
             </div>
             {isWorking && (
               <div className="mt-2 text-sm text-[var(--muted)]">
