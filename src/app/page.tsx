@@ -199,14 +199,14 @@ export default function Home() {
                 <div className="text-sm text-[var(--muted)] mt-1">{currentCard.content}</div>
               </div>
 
-              {/* AI提案 - YES */}
-              <div className="p-4 bg-green-500/10 border-l-2 border-green-500 border-b border-b-[var(--card-border)]">
-                <div className="text-sm leading-relaxed">{currentCard.suggestedAction}</div>
-              </div>
-
-              {/* AI提案 - NO */}
-              <div className="p-4 flex-1 bg-red-500/10 border-l-2 border-red-500">
-                <div className="text-sm leading-relaxed">{currentCard.declineMessage}</div>
+              {/* AI提案 */}
+              <div className="p-4 flex-1 flex flex-col gap-3">
+                <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                  <div className="text-sm leading-relaxed text-green-400">{currentCard.suggestedAction}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                  <div className="text-sm leading-relaxed text-red-400">{currentCard.declineMessage}</div>
+                </div>
               </div>
 
               {/* スワイプボタン */}
