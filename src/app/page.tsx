@@ -134,6 +134,7 @@ export default function Home() {
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [processedCards, setProcessedCards] = useState<string[]>([]);
   const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
+  const [isWorking, setIsWorking] = useState(false);
 
   const currentCard = LIVE_CONTEXT.filter(item => !processedCards.includes(item.id))[0];
 
@@ -158,6 +159,9 @@ export default function Home() {
     if (!input.trim()) return;
     console.log("Sending:", input, "with model:", selectedModel.id);
     setInput("");
+    setIsWorking(true);
+    // デモ用: 3秒後に作業完了
+    setTimeout(() => setIsWorking(false), 3000);
   };
 
   useEffect(() => {
@@ -361,6 +365,36 @@ export default function Home() {
       {/* メインコンテンツエリア */}
       <main className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="w-full max-w-2xl">
+          {/* キャラクター */}
+          <div className="flex flex-col items-center mb-6">
+            <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+              <img
+                src="/conductor.png"
+                alt="Conductor"
+                className={`w-32 h-32 object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
+              />
+              {isWorking && (
+                <div className="absolute -top-2 -right-2">
+                  <span className="relative flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-[var(--primary)]"></span>
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-sm text-[var(--muted)]">
+              {isWorking ? (
+                <span className="flex items-center gap-2">
+                  <span className="inline-block w-1 h-1 bg-[var(--primary)] rounded-full animate-pulse"></span>
+                  作業中...
+                  <span className="inline-block w-1 h-1 bg-[var(--primary)] rounded-full animate-pulse delay-100"></span>
+                </span>
+              ) : (
+                "何かお手伝いしましょうか？"
+              )}
+            </div>
+          </div>
+
           {/* 入力エリア */}
           <form onSubmit={handleSubmit} className="relative">
             <div className="relative">
