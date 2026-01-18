@@ -378,11 +378,11 @@ export default function Home() {
               </div>
 
               {/* ConductorAI - 中央 */}
-              <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+              <div className={`relative self-end ${isWorking ? "animate-bounce" : ""}`}>
                 <img
                   src="/conductor.png"
                   alt="Conductor"
-                  className={`w-[512px] h-[512px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
+                  className={`w-[512px] h-[512px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
                 />
                 {isWorking && (
                   <div className="absolute -top-2 -right-2">
