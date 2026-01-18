@@ -382,17 +382,15 @@ export default function Home() {
                 </div>
               )}
             </div>
-            <div className="mt-2 text-sm text-[var(--muted)]">
-              {isWorking ? (
+            {isWorking && (
+              <div className="mt-2 text-sm text-[var(--muted)]">
                 <span className="flex items-center gap-2">
                   <span className="inline-block w-1 h-1 bg-[var(--primary)] rounded-full animate-pulse"></span>
                   作業中...
                   <span className="inline-block w-1 h-1 bg-[var(--primary)] rounded-full animate-pulse delay-100"></span>
                 </span>
-              ) : (
-                "何かお手伝いしましょうか？"
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* 入力エリア */}
