@@ -53,6 +53,26 @@ const LIVE_CONTEXT = [
   },
 ];
 
+const SCHEDULE = {
+  day: [
+    { id: "1", time: "10:00", title: "チームスタンドアップ", app: "Zoom" },
+    { id: "2", time: "14:00", title: "クライアントミーティング", app: "Teams" },
+    { id: "3", time: "16:00", title: "1on1 with 田中さん", app: "Zoom" },
+  ],
+  week: [
+    { id: "1", day: "月", title: "週次定例", app: "Zoom" },
+    { id: "2", day: "火", title: "デザインレビュー", app: "Figma" },
+    { id: "3", day: "水", title: "スプリントプランニング", app: "Notion" },
+    { id: "4", day: "木", title: "プロダクトMTG", app: "Teams" },
+    { id: "5", day: "金", title: "振り返り", app: "Miro" },
+  ],
+  month: [
+    { id: "1", date: "1/20", title: "月次報告会", app: "Zoom" },
+    { id: "2", date: "1/25", title: "四半期レビュー", app: "Teams" },
+    { id: "3", date: "1/31", title: "締め切り: プロジェクトA", app: "Notion" },
+  ],
+};
+
 const CAPABILITIES = [
   {
     id: "talk",
@@ -113,6 +133,7 @@ export default function Home() {
   const [selectedCapability, setSelectedCapability] = useState<string | null>(null);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [processedCards, setProcessedCards] = useState<string[]>([]);
+  const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
 
   const currentCard = LIVE_CONTEXT.filter(item => !processedCards.includes(item.id))[0];
 
@@ -154,8 +175,95 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex">
-      {/* 左サイドバー - 今起きていること（スワイプUI） */}
-      <aside className="w-96 border-r border-[var(--card-border)] bg-[var(--card-bg)] p-4 flex flex-col">
+      {/* 左サイドバー */}
+      <aside className="w-96 border-r border-[var(--card-border)] bg-[var(--card-bg)] p-4 flex flex-col overflow-y-auto">
+        {/* 予定セクション */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">📅</span>
+            <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
+              予定
+            </h2>
+          </div>
+
+          {/* 日/週/月 切り替えタブ */}
+          <div className="flex gap-1 mb-3 p-1 rounded-lg bg-[var(--background)]">
+            {[
+              { key: "day", label: "今日" },
+              { key: "week", label: "週" },
+              { key: "month", label: "月" },
+            ].map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setScheduleView(tab.key as "day" | "week" | "month")}
+                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  scheduleView === tab.key
+                    ? "bg-[var(--primary)] text-white"
+                    : "text-[var(--muted)] hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* 予定リスト */}
+          <div className="space-y-2">
+            {scheduleView === "day" &&
+              SCHEDULE.day.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-[var(--primary)] font-medium w-12">
+                      {item.time}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{item.title}</div>
+                      <div className="text-xs text-[var(--muted)]">{item.app}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            {scheduleView === "week" &&
+              SCHEDULE.week.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-[var(--primary)] font-medium w-12">
+                      {item.day}曜
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{item.title}</div>
+                      <div className="text-xs text-[var(--muted)]">{item.app}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            {scheduleView === "month" &&
+              SCHEDULE.month.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-[var(--primary)] font-medium w-12">
+                      {item.date}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{item.title}</div>
+                      <div className="text-xs text-[var(--muted)]">{item.app}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </div>
+
+        {/* 今起きていること */}
         <div className="flex items-center gap-2 mb-4">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
