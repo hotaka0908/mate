@@ -382,7 +382,7 @@ export default function Home() {
                 <img
                   src="/conductor.png"
                   alt="Conductor"
-                  className={`w-[512px] h-[512px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
+                  className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
                 />
                 {isWorking && (
                   <div className="absolute -top-2 -right-2">
