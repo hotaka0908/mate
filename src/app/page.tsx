@@ -199,16 +199,27 @@ export default function Home() {
                 <div className="text-sm text-[var(--muted)] mt-1">{currentCard.content}</div>
               </div>
 
-              {/* AI提案 */}
-              <div className="p-4 flex-1 bg-[var(--primary)]/5">
-                <div className="text-xs text-[var(--primary)] mb-2 flex items-center gap-1">
+              {/* AI提案 - YES */}
+              <div className="p-4 bg-green-500/5 border-b border-[var(--card-border)]">
+                <div className="text-xs text-green-400 mb-2 flex items-center gap-1">
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M12 2a10 10 0 1 0 10 10H12V2z"/>
-                    <path d="M12 2a10 10 0 0 1 10 10"/>
+                    <polyline points="20 6 9 17 4 12"/>
                   </svg>
-                  AI提案アクション
+                  YESの場合
                 </div>
                 <div className="text-sm leading-relaxed">{currentCard.suggestedAction}</div>
+              </div>
+
+              {/* AI提案 - NO */}
+              <div className="p-4 flex-1 bg-red-500/5">
+                <div className="text-xs text-red-400 mb-2 flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  NOの場合
+                </div>
+                <div className="text-sm leading-relaxed">{currentCard.declineMessage}</div>
               </div>
 
               {/* スワイプボタン */}
