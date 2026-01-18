@@ -379,7 +379,7 @@ export default function Home() {
               </div>
 
               {/* ConductorAI - 中央 (Maestro) */}
-              <div className={`relative self-end flex flex-col items-center ${isWorking ? "animate-bounce" : ""}`}>
+              <div className={`relative self-end ${isWorking ? "animate-bounce" : ""}`}>
                 <img
                   src="/conductor.png"
                   alt="Maestro"
@@ -393,7 +393,6 @@ export default function Home() {
                     </span>
                   </div>
                 )}
-                <div className="text-amber-400 font-semibold text-lg tracking-wide">Maestro</div>
               </div>
 
               {/* CoderAI - 右 */}
