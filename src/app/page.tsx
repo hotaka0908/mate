@@ -382,13 +382,13 @@ export default function Home() {
                 <img
                   src="/conductor.png"
                   alt="Conductor"
-                  className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" : ""}`}
+                  className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""}`}
                 />
                 {isWorking && (
-                  <div className="absolute -top-2 -right-2">
-                    <span className="relative flex h-4 w-4">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--primary)] opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-4 w-4 bg-[var(--primary)]"></span>
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2">
+                    <span className="relative flex h-5 w-5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-5 w-5 bg-amber-500"></span>
                     </span>
                   </div>
                 )}
@@ -404,11 +404,11 @@ export default function Home() {
               </div>
             </div>
             {isWorking && (
-              <div className="mt-2 text-sm text-[var(--muted)]">
+              <div className="mt-4 text-sm text-amber-400">
                 <span className="flex items-center gap-2">
-                  <span className="inline-block w-1 h-1 bg-[var(--primary)] rounded-full animate-pulse"></span>
+                  <span className="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span>
                   作業中...
-                  <span className="inline-block w-1 h-1 bg-[var(--primary)] rounded-full animate-pulse delay-100"></span>
+                  <span className="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span>
                 </span>
               </div>
             )}
@@ -435,7 +435,7 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="absolute right-3 top-3 p-2 rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="absolute right-3 top-3 p-2 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
