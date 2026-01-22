@@ -8,6 +8,8 @@ type Message = {
   content: string;
 };
 
+const SYSTEM_PROMPT = "あなたは親切なAIアシスタントです。1〜2文で会話してください。";
+
 export async function POST(request: NextRequest) {
   try {
     const { messages, model } = await request.json();
@@ -54,10 +56,13 @@ async function callOpenAI(messages: Message[], model: string): Promise<string> {
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
-    messages: messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-    })),
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      ...messages.map((m) => ({
+        role: m.role,
+        content: m.content,
+      })),
+    ],
   });
 
   return completion.choices[0]?.message?.content || "";
@@ -74,6 +79,7 @@ async function callAnthropic(messages: Message[], model: string): Promise<string
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
+    system: SYSTEM_PROMPT,
     messages: messages.map((m) => ({
       role: m.role,
       content: m.content,
@@ -91,7 +97,10 @@ async function callGoogle(messages: Message[], model: string): Promise<string> {
   }
 
   const genAI = new GoogleGenerativeAI(apiKey);
-  const gemini = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const gemini = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    systemInstruction: SYSTEM_PROMPT,
+  });
 
   const history = messages.slice(0, -1).map((m) => ({
     role: m.role === "user" ? "user" : "model",
