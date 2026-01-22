@@ -598,7 +598,9 @@ export default function Home() {
         {selectedCapability && (
           <div className="mt-4 pt-4 border-t border-[var(--card-border)]">
             <h3 className="text-sm font-semibold text-[var(--muted)] mb-3">
-              {CAPABILITIES.find((c) => c.id === selectedCapability)?.name}に使えるアプリ
+              {selectedCapability === "talk"
+                ? "会話できるキャラ"
+                : `${CAPABILITIES.find((c) => c.id === selectedCapability)?.name}に使えるアプリ`}
             </h3>
             <div className="space-y-2">
               {CAPABILITIES.find((c) => c.id === selectedCapability)?.apps.map((app, index) => (
