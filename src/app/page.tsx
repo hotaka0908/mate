@@ -3,11 +3,9 @@
 import { useState, useEffect } from "react";
 
 const LLM_MODELS = [
-  { id: "gpt-4", name: "GPT-4", provider: "OpenAI" },
-  { id: "gpt-3.5-turbo", name: "GPT-3.5 Turbo", provider: "OpenAI" },
-  { id: "claude-3-opus", name: "Claude 3 Opus", provider: "Anthropic" },
-  { id: "claude-3-sonnet", name: "Claude 3 Sonnet", provider: "Anthropic" },
-  { id: "gemini-pro", name: "Gemini Pro", provider: "Google" },
+  { id: "gpt-5.2", name: "GPT-5.2", provider: "OpenAI" },
+  { id: "claude-opus-4.5", name: "Opus 4.5", provider: "Anthropic" },
+  { id: "gemini-3-flash", name: "Gemini 3 Flash", provider: "Google" },
 ];
 
 const LIVE_CONTEXT = [
