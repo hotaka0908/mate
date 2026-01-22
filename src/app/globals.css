@@ -49,3 +49,17 @@ aside {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
+
+/* キャラクタージャンプアニメーション */
+@keyframes jump {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.animate-jump {
+  animation: jump 0.4s ease-in-out;
+}

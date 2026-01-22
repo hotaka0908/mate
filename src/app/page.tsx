@@ -80,6 +80,8 @@ const CAPABILITIES = [
     icon: "💬",
     apps: [
       { name: "Maestro", capability: "タスク管理・AIオーケストレーション", isMain: true },
+      { name: "Coda", capability: "ドキュメント・チャット統合" },
+      { name: "Memori", capability: "AI会話・記憶管理" },
     ],
   },
   {
@@ -152,6 +154,12 @@ export default function Home() {
   const [processedCards, setProcessedCards] = useState<string[]>([]);
   const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
   const [isWorking, setIsWorking] = useState(false);
+  const [jumpingChar, setJumpingChar] = useState<string | null>(null);
+
+  const handleCharacterClick = (charId: string) => {
+    setJumpingChar(charId);
+    setTimeout(() => setJumpingChar(null), 500);
+  };
 
   const currentCard = LIVE_CONTEXT.filter(item => !processedCards.includes(item.id))[0];
 
@@ -380,7 +388,10 @@ export default function Home() {
           <div className="flex flex-col items-center mb-6">
             <div className="flex items-end justify-center gap-4">
               {/* MemoryAI - 左 */}
-              <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+              <div
+                className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "memory" ? "animate-jump" : ""}`}
+                onClick={() => handleCharacterClick("memory")}
+              >
                 <img
                   src="/MemoryAI.png"
                   alt="Memory AI"
@@ -389,7 +400,10 @@ export default function Home() {
               </div>
 
               {/* ConductorAI - 中央 (Maestro) */}
-              <div className={`relative self-end ${isWorking ? "animate-bounce" : ""}`}>
+              <div
+                className={`relative self-end cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
+                onClick={() => handleCharacterClick("conductor")}
+              >
                 <img
                   src="/conductor.png"
                   alt="Maestro"
@@ -406,7 +420,10 @@ export default function Home() {
               </div>
 
               {/* CoderAI - 右 */}
-              <div className={`relative ${isWorking ? "animate-bounce" : ""}`}>
+              <div
+                className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "coder" ? "animate-jump" : ""}`}
+                onClick={() => handleCharacterClick("coder")}
+              >
                 <img
                   src="/CoderAI.png"
                   alt="Coder AI"

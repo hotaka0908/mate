@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Mate - LLM Interface",
+  title: "mate - LLM Interface",
   description: "LLM chat interface with app connections",
 };
 
