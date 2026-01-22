@@ -80,9 +80,16 @@ const CAPABILITIES = [
     icon: "💬",
     apps: [
       { name: "Maestro", capability: "タスク管理・AIオーケストレーション", isMain: true },
-      { name: "GPT-4", capability: "OpenAI 高度な推論・文章生成" },
-      { name: "Claude 3", capability: "Anthropic 長文理解・分析" },
-      { name: "Gemini", capability: "Google マルチモーダル対応" },
+    ],
+  },
+  {
+    id: "create",
+    name: "作る",
+    icon: "🛠️",
+    apps: [
+      { name: "Claude Code", capability: "AIコーディング・開発支援" },
+      { name: "Codex", capability: "コード生成・自動補完" },
+      { name: "Manus", capability: "AIエージェント・タスク実行" },
     ],
   },
   {
@@ -101,8 +108,6 @@ const CAPABILITIES = [
     icon: "🔍",
     apps: [
       { name: "Google", capability: "ウェブ検索・画像検索" },
-      { name: "Notion", capability: "ドキュメント内を検索" },
-      { name: "GitHub", capability: "コード・リポジトリを検索" },
     ],
   },
   {
@@ -122,7 +127,17 @@ const CAPABILITIES = [
     apps: [
       { name: "Notion", capability: "ノート・データベース保存" },
       { name: "Obsidian", capability: "ナレッジベース構築" },
-      { name: "Google Drive", capability: "ファイル・フォルダ保存" },
+      { name: "Google フォト", capability: "写真・動画の保存・整理" },
+    ],
+  },
+  {
+    id: "other",
+    name: "その他",
+    icon: "⋯",
+    apps: [
+      { name: "Spotify", capability: "音楽再生・プレイリスト管理" },
+      { name: "X", capability: "投稿・タイムライン閲覧" },
+      { name: "Amazon", capability: "商品検索・購入" },
     ],
   },
 ];
