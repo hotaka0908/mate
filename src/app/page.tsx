@@ -79,9 +79,9 @@ const CAPABILITIES = [
     name: "会話する",
     icon: "💬",
     apps: [
-      { name: "Maestro", capability: "タスク管理・AIオーケストレーション", isMain: true },
-      { name: "Coda", capability: "ドキュメント・チャット統合" },
-      { name: "Memori", capability: "AI会話・記憶管理" },
+      { name: "Maestro", capability: "タスク管理・AIオーケストレーション", isMain: true, charId: "conductor" },
+      { name: "Coda", capability: "ドキュメント・チャット統合", charId: "coder" },
+      { name: "Memori", capability: "AI会話・記憶管理", charId: "memory" },
     ],
   },
   {
@@ -155,6 +155,7 @@ export default function Home() {
   const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
   const [isWorking, setIsWorking] = useState(false);
   const [jumpingChar, setJumpingChar] = useState<string | null>(null);
+  const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
 
   const handleCharacterClick = (charId: string) => {
     setJumpingChar(charId);
@@ -387,49 +388,83 @@ export default function Home() {
           {/* キャラクター */}
           <div className="flex flex-col items-center mb-6">
             <div className="flex items-end justify-center gap-4">
-              {/* MemoryAI - 左 */}
-              <div
-                className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "memory" ? "animate-jump" : ""}`}
-                onClick={() => handleCharacterClick("memory")}
-              >
-                <img
-                  src="/MemoryAI.png"
-                  alt="Memory AI"
-                  className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" : ""}`}
-                />
-              </div>
-
-              {/* ConductorAI - 中央 (Maestro) */}
-              <div
-                className={`relative self-end cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
-                onClick={() => handleCharacterClick("conductor")}
-              >
-                <img
-                  src="/conductor.png"
-                  alt="Maestro"
-                  className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""}`}
-                />
-                {isWorking && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2">
-                    <span className="relative flex h-5 w-5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-5 w-5 bg-amber-500"></span>
-                    </span>
+              {/* 選択されたキャラクターのみ表示 or 全員表示 */}
+              {selectedCharacter ? (
+                // 選択されたキャラクターを中央に大きく表示
+                <div
+                  className={`relative cursor-pointer transition-all duration-300 ${isWorking ? "animate-bounce" : ""} ${jumpingChar === selectedCharacter ? "animate-jump" : ""}`}
+                  onClick={() => {
+                    handleCharacterClick(selectedCharacter);
+                    setSelectedCharacter(null);
+                  }}
+                >
+                  <img
+                    src={
+                      selectedCharacter === "conductor" ? "/conductor.png" :
+                      selectedCharacter === "coder" ? "/CoderAI.png" :
+                      "/MemoryAI.png"
+                    }
+                    alt={
+                      selectedCharacter === "conductor" ? "Maestro" :
+                      selectedCharacter === "coder" ? "Coda" :
+                      "Memori"
+                    }
+                    className={`w-[500px] h-[500px] object-contain transition-all duration-300 ${
+                      isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""
+                    }`}
+                  />
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm text-[var(--muted)]">
+                    クリックで全員表示に戻る
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                // 全員表示
+                <>
+                  {/* MemoryAI - 左 (Memori) */}
+                  <div
+                    className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "memory" ? "animate-jump" : ""}`}
+                    onClick={() => handleCharacterClick("memory")}
+                  >
+                    <img
+                      src="/MemoryAI.png"
+                      alt="Memori"
+                      className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" : ""}`}
+                    />
+                  </div>
 
-              {/* CoderAI - 右 */}
-              <div
-                className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "coder" ? "animate-jump" : ""}`}
-                onClick={() => handleCharacterClick("coder")}
-              >
-                <img
-                  src="/CoderAI.png"
-                  alt="Coder AI"
-                  className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" : ""}`}
-                />
-              </div>
+                  {/* ConductorAI - 中央 (Maestro) */}
+                  <div
+                    className={`relative self-end cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
+                    onClick={() => handleCharacterClick("conductor")}
+                  >
+                    <img
+                      src="/conductor.png"
+                      alt="Maestro"
+                      className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""}`}
+                    />
+                    {isWorking && (
+                      <div className="absolute top-4 left-1/2 -translate-x-1/2">
+                        <span className="relative flex h-5 w-5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-5 w-5 bg-amber-500"></span>
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* CoderAI - 右 (Coda) */}
+                  <div
+                    className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "coder" ? "animate-jump" : ""}`}
+                    onClick={() => handleCharacterClick("coder")}
+                  >
+                    <img
+                      src="/CoderAI.png"
+                      alt="Coda"
+                      className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" : ""}`}
+                    />
+                  </div>
+                </>
+              )}
             </div>
             {isWorking && (
               <div className="mt-4 text-sm text-amber-400">
@@ -569,7 +604,16 @@ export default function Home() {
               {CAPABILITIES.find((c) => c.id === selectedCapability)?.apps.map((app, index) => (
                 <div
                   key={index}
-                  className="p-3 rounded-xl border border-[var(--card-border)] hover:border-[var(--primary)] transition-colors cursor-pointer"
+                  onClick={() => {
+                    if ('charId' in app && app.charId) {
+                      setSelectedCharacter(app.charId as string);
+                    }
+                  }}
+                  className={`p-3 rounded-xl border transition-colors cursor-pointer ${
+                    'charId' in app && app.charId === selectedCharacter
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                      : "border-[var(--card-border)] hover:border-[var(--primary)]"
+                  }`}
                 >
                   <div className="font-medium text-sm">{app.name}</div>
                   <p className="text-xs text-[var(--muted)] mt-1">
