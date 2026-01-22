@@ -1,6 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+type Message = {
+  role: "user" | "assistant";
+  content: string;
+};
 
 const LLM_MODELS = [
   { id: "gpt-5.2", name: "GPT-5.2", provider: "OpenAI" },
@@ -153,6 +158,9 @@ export default function Home() {
   const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
   const [jumpingChar, setJumpingChar] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleCharacterClick = (charId: string) => {
     setJumpingChar(charId);
@@ -177,12 +185,49 @@ export default function Home() {
     }, 300);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    console.log("Sending:", input, "with model:", selectedModel.id);
+    if (!input.trim() || isLoading) return;
+
+    const userMessage: Message = { role: "user", content: input };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput("");
+    setIsLoading(true);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: newMessages,
+          model: selectedModel.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "API request failed");
+      }
+
+      const assistantMessage: Message = { role: "assistant", content: data.response };
+      setMessages([...newMessages, assistantMessage]);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: Message = {
+        role: "assistant",
+        content: `エラーが発生しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+      };
+      setMessages([...newMessages, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -377,80 +422,115 @@ export default function Home() {
       </aside>
 
       {/* メインコンテンツエリア */}
-      <main className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-2xl">
-          {/* キャラクター */}
-          <div className="flex flex-col items-center mb-6">
-            <div className="flex items-end justify-center gap-4">
-              {/* 選択されたキャラクターのみ表示 or 全員表示 */}
-              {selectedCharacter ? (
-                // 選択されたキャラクターを中央に大きく表示
+      <main className="flex-1 flex flex-col p-8">
+        <div className="w-full max-w-2xl mx-auto flex-1 flex flex-col">
+          {/* メッセージがある場合は会話表示、ない場合はキャラクター表示 */}
+          {messages.length > 0 ? (
+            // 会話表示
+            <div className="flex-1 overflow-y-auto mb-6 space-y-4">
+              {messages.map((message, index) => (
                 <div
-                  className={`relative cursor-pointer transition-all duration-300 ${jumpingChar === selectedCharacter ? "animate-jump" : ""}`}
-                  onClick={() => {
-                    handleCharacterClick(selectedCharacter);
-                    setSelectedCharacter(null);
-                  }}
+                  key={index}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <img
-                    src={
-                      selectedCharacter === "conductor" ? "/conductor.png" :
-                      selectedCharacter === "coder" ? "/CoderAI.png" :
-                      "/MemoryAI.png"
-                    }
-                    alt={
-                      selectedCharacter === "conductor" ? "Maestro" :
-                      selectedCharacter === "coder" ? "Coda" :
-                      "Memori"
-                    }
-                    className="w-[500px] h-[500px] object-contain transition-all duration-300"
-                  />
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm text-[var(--muted)]">
-                    クリックで全員表示に戻る
+                  <div
+                    className={`max-w-[80%] p-4 rounded-2xl ${
+                      message.role === "user"
+                        ? "bg-[var(--primary)] text-white"
+                        : "bg-[var(--card-bg)] border border-[var(--card-border)]"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                   </div>
                 </div>
-              ) : (
-                // 全員表示
-                <>
-                  {/* MemoryAI - 左 (Memori) */}
-                  <div
-                    className={`relative cursor-pointer transition-transform ${jumpingChar === "memory" ? "animate-jump" : ""}`}
-                    onClick={() => handleCharacterClick("memory")}
-                  >
-                    <img
-                      src="/MemoryAI.png"
-                      alt="Memori"
-                      className="w-[358px] h-[358px] object-contain"
-                    />
+              ))}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-[var(--card-bg)] border border-[var(--card-border)] p-4 rounded-2xl">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-[var(--primary)] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
                   </div>
-
-                  {/* ConductorAI - 中央 (Maestro) */}
-                  <div
-                    className={`relative self-end cursor-pointer transition-transform ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
-                    onClick={() => handleCharacterClick("conductor")}
-                  >
-                    <img
-                      src="/conductor.png"
-                      alt="Maestro"
-                      className="w-[614px] h-[614px] object-contain object-bottom"
-                    />
-                  </div>
-
-                  {/* CoderAI - 右 (Coda) */}
-                  <div
-                    className={`relative cursor-pointer transition-transform ${jumpingChar === "coder" ? "animate-jump" : ""}`}
-                    onClick={() => handleCharacterClick("coder")}
-                  >
-                    <img
-                      src="/CoderAI.png"
-                      alt="Coda"
-                      className="w-[358px] h-[358px] object-contain"
-                    />
-                  </div>
-                </>
+                </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
-          </div>
+          ) : (
+            // キャラクター表示
+            <div className="flex-1 flex flex-col items-center justify-center mb-6">
+              <div className="flex items-end justify-center gap-4">
+                {/* 選択されたキャラクターのみ表示 or 全員表示 */}
+                {selectedCharacter ? (
+                  // 選択されたキャラクターを中央に大きく表示
+                  <div
+                    className={`relative cursor-pointer transition-all duration-300 ${jumpingChar === selectedCharacter ? "animate-jump" : ""}`}
+                    onClick={() => {
+                      handleCharacterClick(selectedCharacter);
+                      setSelectedCharacter(null);
+                    }}
+                  >
+                    <img
+                      src={
+                        selectedCharacter === "conductor" ? "/conductor.png" :
+                        selectedCharacter === "coder" ? "/CoderAI.png" :
+                        "/MemoryAI.png"
+                      }
+                      alt={
+                        selectedCharacter === "conductor" ? "Maestro" :
+                        selectedCharacter === "coder" ? "Coda" :
+                        "Memori"
+                      }
+                      className="w-[500px] h-[500px] object-contain transition-all duration-300"
+                    />
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm text-[var(--muted)]">
+                      クリックで全員表示に戻る
+                    </div>
+                  </div>
+                ) : (
+                  // 全員表示
+                  <>
+                    {/* MemoryAI - 左 (Memori) */}
+                    <div
+                      className={`relative cursor-pointer transition-transform ${jumpingChar === "memory" ? "animate-jump" : ""}`}
+                      onClick={() => handleCharacterClick("memory")}
+                    >
+                      <img
+                        src="/MemoryAI.png"
+                        alt="Memori"
+                        className="w-[358px] h-[358px] object-contain"
+                      />
+                    </div>
+
+                    {/* ConductorAI - 中央 (Maestro) */}
+                    <div
+                      className={`relative self-end cursor-pointer transition-transform ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
+                      onClick={() => handleCharacterClick("conductor")}
+                    >
+                      <img
+                        src="/conductor.png"
+                        alt="Maestro"
+                        className="w-[614px] h-[614px] object-contain object-bottom"
+                      />
+                    </div>
+
+                    {/* CoderAI - 右 (Coda) */}
+                    <div
+                      className={`relative cursor-pointer transition-transform ${jumpingChar === "coder" ? "animate-jump" : ""}`}
+                      onClick={() => handleCharacterClick("coder")}
+                    >
+                      <img
+                        src="/CoderAI.png"
+                        alt="Coda"
+                        className="w-[358px] h-[358px] object-contain"
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 入力エリア */}
           <form onSubmit={handleSubmit} className="relative">
@@ -472,7 +552,7 @@ export default function Home() {
               {/* 送信ボタン */}
               <button
                 type="submit"
-                disabled={!input.trim()}
+                disabled={!input.trim() || isLoading}
                 className="absolute right-3 top-3 p-2 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg
