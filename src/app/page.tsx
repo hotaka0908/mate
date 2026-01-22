@@ -108,6 +108,7 @@ const CAPABILITIES = [
     icon: "🔍",
     apps: [
       { name: "Google", capability: "ウェブ検索・画像検索" },
+      { name: "Amazon", capability: "商品検索・購入" },
     ],
   },
   {
@@ -116,7 +117,7 @@ const CAPABILITIES = [
     icon: "💳",
     apps: [
       { name: "PayPay", capability: "QRコード決済・送金" },
-      { name: "Stripe", capability: "オンライン決済処理" },
+      { name: "Suica", capability: "交通系IC決済" },
       { name: "Apple Pay", capability: "タッチ決済" },
     ],
   },
@@ -125,7 +126,7 @@ const CAPABILITIES = [
     name: "記憶",
     icon: "🧠",
     apps: [
-      { name: "Notion", capability: "ノート・データベース保存" },
+      { name: "メモ", capability: "テキスト・メモの保存" },
       { name: "Obsidian", capability: "ナレッジベース構築" },
       { name: "Google フォト", capability: "写真・動画の保存・整理" },
     ],
@@ -137,7 +138,7 @@ const CAPABILITIES = [
     apps: [
       { name: "Spotify", capability: "音楽再生・プレイリスト管理" },
       { name: "X", capability: "投稿・タイムライン閲覧" },
-      { name: "Amazon", capability: "商品検索・購入" },
+      { name: "ヘルスケア", capability: "健康データ管理・記録" },
     ],
   },
 ];
