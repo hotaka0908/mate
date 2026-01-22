@@ -153,7 +153,6 @@ export default function Home() {
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [processedCards, setProcessedCards] = useState<string[]>([]);
   const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
-  const [isWorking, setIsWorking] = useState(false);
   const [jumpingChar, setJumpingChar] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
 
@@ -185,9 +184,6 @@ export default function Home() {
     if (!input.trim()) return;
     console.log("Sending:", input, "with model:", selectedModel.id);
     setInput("");
-    setIsWorking(true);
-    // デモ用: 3秒後に作業完了
-    setTimeout(() => setIsWorking(false), 3000);
   };
 
   useEffect(() => {
@@ -392,7 +388,7 @@ export default function Home() {
               {selectedCharacter ? (
                 // 選択されたキャラクターを中央に大きく表示
                 <div
-                  className={`relative cursor-pointer transition-all duration-300 ${isWorking ? "animate-bounce" : ""} ${jumpingChar === selectedCharacter ? "animate-jump" : ""}`}
+                  className={`relative cursor-pointer transition-all duration-300 ${jumpingChar === selectedCharacter ? "animate-jump" : ""}`}
                   onClick={() => {
                     handleCharacterClick(selectedCharacter);
                     setSelectedCharacter(null);
@@ -409,9 +405,7 @@ export default function Home() {
                       selectedCharacter === "coder" ? "Coda" :
                       "Memori"
                     }
-                    className={`w-[500px] h-[500px] object-contain transition-all duration-300 ${
-                      isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""
-                    }`}
+                    className="w-[500px] h-[500px] object-contain transition-all duration-300"
                   />
                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm text-[var(--muted)]">
                     クリックで全員表示に戻る
@@ -422,59 +416,42 @@ export default function Home() {
                 <>
                   {/* MemoryAI - 左 (Memori) */}
                   <div
-                    className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "memory" ? "animate-jump" : ""}`}
+                    className={`relative cursor-pointer transition-transform ${jumpingChar === "memory" ? "animate-jump" : ""}`}
                     onClick={() => handleCharacterClick("memory")}
                   >
                     <img
                       src="/MemoryAI.png"
                       alt="Memori"
-                      className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(139,92,246,0.5)]" : ""}`}
+                      className="w-[358px] h-[358px] object-contain"
                     />
                   </div>
 
                   {/* ConductorAI - 中央 (Maestro) */}
                   <div
-                    className={`relative self-end cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
+                    className={`relative self-end cursor-pointer transition-transform ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
                     onClick={() => handleCharacterClick("conductor")}
                   >
                     <img
                       src="/conductor.png"
                       alt="Maestro"
-                      className={`w-[614px] h-[614px] object-contain object-bottom ${isWorking ? "drop-shadow-[0_0_20px_rgba(201,162,39,0.6)]" : ""}`}
+                      className="w-[614px] h-[614px] object-contain object-bottom"
                     />
-                    {isWorking && (
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2">
-                        <span className="relative flex h-5 w-5">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-5 w-5 bg-amber-500"></span>
-                        </span>
-                      </div>
-                    )}
                   </div>
 
                   {/* CoderAI - 右 (Coda) */}
                   <div
-                    className={`relative cursor-pointer transition-transform ${isWorking ? "animate-bounce" : ""} ${jumpingChar === "coder" ? "animate-jump" : ""}`}
+                    className={`relative cursor-pointer transition-transform ${jumpingChar === "coder" ? "animate-jump" : ""}`}
                     onClick={() => handleCharacterClick("coder")}
                   >
                     <img
                       src="/CoderAI.png"
                       alt="Coda"
-                      className={`w-[358px] h-[358px] object-contain ${isWorking ? "drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" : ""}`}
+                      className="w-[358px] h-[358px] object-contain"
                     />
                   </div>
                 </>
               )}
             </div>
-            {isWorking && (
-              <div className="mt-4 text-sm text-amber-400">
-                <span className="flex items-center gap-2">
-                  <span className="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span>
-                  作業中...
-                  <span className="inline-block w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span>
-                </span>
-              </div>
-            )}
           </div>
 
           {/* 入力エリア */}
