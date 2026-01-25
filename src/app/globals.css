@@ -64,11 +64,28 @@ aside {
   animation: jump 0.4s ease-in-out;
 }
 
-/* モバイル用スタイル */
+/* モバイル用スタイル - ライトテーマ */
 @media (max-width: 1023px) {
-  /* モバイルでのセーフエリア対応 */
+  :root {
+    --background: #ffffff;
+    --foreground: #1a1a1a;
+    --card-bg: #f8f9fa;
+    --card-border: #e5e7eb;
+    --primary: #b8941f;
+    --primary-hover: #a07d15;
+    --muted: #6b7280;
+    --accent-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+    --accent-green: #22c55e;
+  }
+
   body {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #ffffff 100%);
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  aside {
+    background: linear-gradient(180deg, rgba(248, 249, 250, 0.98) 0%, rgba(255, 255, 255, 0.99) 100%);
   }
 
   /* モバイルでのスクロール改善 */
@@ -79,6 +96,19 @@ aside {
   /* モバイルでのタップハイライト無効化 */
   button, a {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  /* モバイル用スクロールバー */
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
   }
 }
 

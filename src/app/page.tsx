@@ -294,7 +294,7 @@ export default function Home() {
                 className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   scheduleView === tab.key
                     ? "bg-[var(--primary)] text-white"
-                    : "text-[var(--muted)] hover:text-white"
+                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
                 }`}
               >
                 {tab.label}
@@ -572,7 +572,7 @@ export default function Home() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="メッセージを入力..."
-                className="w-full p-4 pr-12 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-white placeholder-[var(--muted)] resize-none focus:outline-none focus:border-[var(--primary)] transition-colors"
+                className="w-full p-4 pr-12 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] placeholder-[var(--muted)] resize-none focus:outline-none focus:border-[var(--primary)] transition-colors"
                 rows={4}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
@@ -611,7 +611,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-white hover:border-[var(--primary)] transition-colors"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)] transition-colors"
                 >
                   <span className="w-2 h-2 rounded-full bg-green-500" />
                   <span>{selectedModel.name}</span>
