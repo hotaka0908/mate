@@ -424,7 +424,7 @@ export default function Home() {
                   <span className="text-2xl font-bold text-[var(--foreground)]">
                     {new Date(selectedDate).getMonth() + 1}/{new Date(selectedDate).getDate()}
                   </span>
-                  <span className="text-sm text-[var(--muted)]">
+                  <span className="text-lg text-[var(--muted)]">
                     {WEEKDAYS[new Date(selectedDate).getDay()]}
                   </span>
                 </div>
