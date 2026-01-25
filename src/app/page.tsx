@@ -772,55 +772,6 @@ export default function Home() {
               </button>
             </div>
 
-            {/* モデル切り替え（入力欄の右下） */}
-            <div className="flex justify-end mt-3">
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--card-bg)] border border-[var(--card-border)] text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)] transition-colors"
-                >
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  <span>{selectedModel.name}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className={`transition-transform ${isModelMenuOpen ? "rotate-180" : ""}`}
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-
-                {/* モデル選択ドロップダウン */}
-                {isModelMenuOpen && (
-                  <div className="absolute right-0 bottom-full mb-2 w-56 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] shadow-xl overflow-hidden z-10">
-                    {LLM_MODELS.map((model) => (
-                      <button
-                        key={model.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedModel(model);
-                          setIsModelMenuOpen(false);
-                        }}
-                        className={`w-full px-4 py-3 text-left hover:bg-[var(--card-border)] transition-colors ${
-                          selectedModel.id === model.id ? "bg-[var(--card-border)]" : ""
-                        }`}
-                      >
-                        <div className="text-sm font-medium">{model.name}</div>
-                        <div className="text-xs text-[var(--muted)]">{model.provider}</div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
           </form>
         </div>
       </main>
@@ -920,6 +871,38 @@ export default function Home() {
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
               </button>
+
+              {/* モデル選択 */}
+              <div className="w-full p-4 rounded-xl bg-[var(--background)]">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-xl">🤖</span>
+                  <div className="font-medium text-[var(--foreground)]">AIモデル</div>
+                </div>
+                <div className="space-y-2">
+                  {LLM_MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => setSelectedModel(model)}
+                      className={`w-full p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                        selectedModel.id === model.id
+                          ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                          : "border-[var(--card-border)] hover:border-[var(--primary)]"
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full ${selectedModel.id === model.id ? "bg-green-500" : "bg-[var(--muted)]"}`} />
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{model.name}</div>
+                        <div className="text-xs text-[var(--muted)]">{model.provider}</div>
+                      </div>
+                      {selectedModel.id === model.id && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
               <button
                 onClick={() => setProfileSection("settings")}
