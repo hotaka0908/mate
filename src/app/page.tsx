@@ -184,7 +184,8 @@ const CAPABILITIES = [
 ];
 
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
-type ProfileSection = "main" | "capabilities" | "settings" | "model";
+type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode";
+type ChatMode = "text" | "voice";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -206,7 +207,15 @@ export default function Home() {
   const [generatedImages, setGeneratedImages] = useState<Record<string, string>>({});
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationError, setImageGenerationError] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<ChatMode>("text");
+  const [isVoiceConnected, setIsVoiceConnected] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+  const audioQueueRef = useRef<ArrayBuffer[]>([]);
 
   const handleCharacterClick = (charId: string) => {
     setJumpingChar(charId);
@@ -241,6 +250,249 @@ export default function Home() {
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.15);
+  };
+
+  // Realtime API接続関数
+  const connectToRealtimeAPI = async () => {
+    try {
+      // セッショントークンを取得
+      const response = await fetch("/api/realtime", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to get session token");
+      }
+
+      const { client_secret } = await response.json();
+
+      // WebSocket接続
+      const ws = new WebSocket(
+        `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`,
+        ["realtime", `openai-insecure-api-key.${client_secret.value}`]
+      );
+
+      ws.onopen = () => {
+        console.log("Realtime API connected");
+        setIsVoiceConnected(true);
+        startAudioCapture(ws);
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleRealtimeMessage(data);
+      };
+
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        setIsVoiceConnected(false);
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket closed");
+        setIsVoiceConnected(false);
+        setIsListening(false);
+        stopAudioCapture();
+      };
+
+      wsRef.current = ws;
+    } catch (error) {
+      console.error("Connection error:", error);
+      setIsVoiceConnected(false);
+    }
+  };
+
+  // 音声キャプチャ開始
+  const startAudioCapture = async (ws: WebSocket) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          sampleRate: 24000,
+          channelCount: 1,
+          echoCancellation: true,
+          noiseSuppression: true,
+        },
+      });
+
+      mediaStreamRef.current = stream;
+      const audioContext = new AudioContext({ sampleRate: 24000 });
+      audioContextRef.current = audioContext;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      const processor = audioContext.createScriptProcessor(4096, 1, 1);
+
+      processor.onaudioprocess = (e) => {
+        if (ws.readyState === WebSocket.OPEN) {
+          const inputData = e.inputBuffer.getChannelData(0);
+          const pcm16 = floatTo16BitPCM(inputData);
+          const base64Audio = arrayBufferToBase64(pcm16.buffer as ArrayBuffer);
+
+          ws.send(JSON.stringify({
+            type: "input_audio_buffer.append",
+            audio: base64Audio,
+          }));
+        }
+      };
+
+      source.connect(processor);
+      processor.connect(audioContext.destination);
+      setIsListening(true);
+    } catch (error) {
+      console.error("Audio capture error:", error);
+    }
+  };
+
+  // 音声キャプチャ停止
+  const stopAudioCapture = () => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+      audioContextRef.current = null;
+    }
+    setIsListening(false);
+  };
+
+  // 切断
+  const disconnectFromRealtimeAPI = () => {
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    stopAudioCapture();
+    setIsVoiceConnected(false);
+    setIsSpeaking(false);
+  };
+
+  // Realtime APIメッセージハンドラ
+  const handleRealtimeMessage = (data: { type: string; delta?: string; transcript?: string; item?: { content?: Array<{ transcript?: string; text?: string }> } }) => {
+    switch (data.type) {
+      case "response.audio.delta":
+        // 音声データを再生
+        if (data.delta) {
+          playAudioDelta(data.delta);
+          setIsSpeaking(true);
+        }
+        break;
+
+      case "response.audio.done":
+        setIsSpeaking(false);
+        break;
+
+      case "conversation.item.input_audio_transcription.completed":
+        // ユーザーの音声がテキスト化された
+        if (data.transcript) {
+          setMessages(prev => [...prev, { role: "user", content: data.transcript as string }]);
+        }
+        break;
+
+      case "response.audio_transcript.done":
+        // AIの応答がテキスト化された
+        if (data.transcript) {
+          const transcriptText = data.transcript;
+          setMessages(prev => [...prev, { role: "assistant", content: transcriptText }]);
+        }
+        break;
+
+      case "response.done":
+        // レスポンス完了時に最終テキストを取得
+        if (data.item?.content) {
+          const textContent = data.item.content.find((c: { transcript?: string; text?: string }) => c.transcript || c.text);
+          if (textContent && (textContent.transcript || textContent.text)) {
+            // 既に追加されていない場合のみ追加
+          }
+        }
+        break;
+
+      default:
+        // その他のイベントはログのみ
+        if (data.type !== "input_audio_buffer.speech_started" &&
+            data.type !== "input_audio_buffer.speech_stopped" &&
+            data.type !== "input_audio_buffer.committed") {
+          console.log("Realtime event:", data.type);
+        }
+    }
+  };
+
+  // 音声再生
+  const playAudioDelta = async (base64Audio: string) => {
+    try {
+      const audioData = base64ToArrayBuffer(base64Audio);
+      audioQueueRef.current.push(audioData);
+
+      if (audioQueueRef.current.length === 1) {
+        playNextInQueue();
+      }
+    } catch (error) {
+      console.error("Audio playback error:", error);
+    }
+  };
+
+  const playNextInQueue = async () => {
+    if (audioQueueRef.current.length === 0) return;
+
+    const audioData = audioQueueRef.current[0];
+
+    try {
+      const audioContext = new AudioContext({ sampleRate: 24000 });
+      const pcmData = new Int16Array(audioData);
+      const floatData = new Float32Array(pcmData.length);
+
+      for (let i = 0; i < pcmData.length; i++) {
+        floatData[i] = pcmData[i] / 32768;
+      }
+
+      const audioBuffer = audioContext.createBuffer(1, floatData.length, 24000);
+      audioBuffer.getChannelData(0).set(floatData);
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      source.onended = () => {
+        audioQueueRef.current.shift();
+        if (audioQueueRef.current.length > 0) {
+          playNextInQueue();
+        }
+      };
+      source.start();
+    } catch (error) {
+      console.error("Audio queue playback error:", error);
+      audioQueueRef.current.shift();
+      if (audioQueueRef.current.length > 0) {
+        playNextInQueue();
+      }
+    }
+  };
+
+  // ヘルパー関数
+  const floatTo16BitPCM = (float32Array: Float32Array): Int16Array => {
+    const int16Array = new Int16Array(float32Array.length);
+    for (let i = 0; i < float32Array.length; i++) {
+      const s = Math.max(-1, Math.min(1, float32Array[i]));
+      int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+    }
+    return int16Array;
+  };
+
+  const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
+    let binary = '';
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+  };
+
+  const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
   };
 
   const handleSwipe = (direction: "left" | "right") => {
@@ -967,46 +1219,139 @@ export default function Home() {
           )}
 
           {/* 入力エリア */}
-          <form onSubmit={handleSubmit} className="relative">
-            <div className="relative">
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="メッセージを入力..."
-                className="w-full p-4 pr-12 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] placeholder-[var(--muted)] resize-none focus:outline-none focus:border-[var(--primary)] transition-colors"
-                rows={4}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
+          {chatMode === "text" ? (
+            <form onSubmit={handleSubmit} className="relative">
+              <div className="relative">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="メッセージを入力..."
+                  className="w-full p-4 pr-12 rounded-xl bg-[var(--card-bg)] border border-[var(--card-border)] text-[var(--foreground)] placeholder-[var(--muted)] resize-none focus:outline-none focus:border-[var(--primary)] transition-colors"
+                  rows={4}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSubmit(e);
+                    }
+                  }}
+                />
+
+                {/* 送信ボタン */}
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className="absolute right-3 top-3 p-2 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <line x1="22" y1="2" x2="11" y2="13" />
+                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* おしゃべりモード */
+            <div className="flex flex-col items-center gap-4">
+              {/* 接続状態表示 */}
+              <div className="flex items-center gap-2 text-sm">
+                <span className={`w-2 h-2 rounded-full ${isVoiceConnected ? "bg-green-500" : "bg-gray-400"}`} />
+                <span className="text-[var(--muted)]">
+                  {isVoiceConnected
+                    ? isSpeaking
+                      ? "AIが話しています..."
+                      : isListening
+                      ? "聞いています..."
+                      : "接続中"
+                    : "未接続"}
+                </span>
+              </div>
+
+              {/* 音声波形アニメーション */}
+              {isVoiceConnected && (isListening || isSpeaking) && (
+                <div className="flex items-center justify-center gap-1 h-12">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1 rounded-full transition-all duration-150 ${
+                        isSpeaking ? "bg-amber-500" : "bg-[var(--primary)]"
+                      }`}
+                      style={{
+                        height: `${Math.random() * 32 + 8}px`,
+                        animation: `soundWave 0.5s ease-in-out infinite`,
+                        animationDelay: `${i * 0.1}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* マイクボタン */}
+              <button
+                onClick={() => {
+                  if (isVoiceConnected) {
+                    disconnectFromRealtimeAPI();
+                  } else {
+                    connectToRealtimeAPI();
                   }
                 }}
-              />
-
-              {/* 送信ボタン */}
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="absolute right-3 top-3 p-2 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${
+                  isVoiceConnected
+                    ? isSpeaking
+                      ? "bg-amber-500 scale-110"
+                      : "bg-green-500 scale-105 animate-pulse"
+                    : "bg-[var(--primary)] hover:scale-105"
+                }`}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="22" y1="2" x2="11" y2="13" />
-                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                </svg>
+                {isVoiceConnected ? (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="32"
+                    height="32"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                    <line x1="12" y1="19" x2="12" y2="23" />
+                    <line x1="8" y1="23" x2="16" y2="23" />
+                  </svg>
+                )}
               </button>
-            </div>
 
-          </form>
+              <p className="text-sm text-[var(--muted)]">
+                {isVoiceConnected ? "タップして終了" : "タップして話す"}
+              </p>
+            </div>
+          )}
         </div>
       </main>
 
@@ -1114,6 +1459,20 @@ export default function Home() {
                 <div className="flex-1 text-left">
                   <div className="font-medium text-[var(--foreground)]">AIモデル</div>
                   <div className="text-xs text-[var(--muted)]">{selectedModel.name} ({selectedModel.provider})</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              <button
+                onClick={() => setProfileSection("mode")}
+                className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
+              >
+                <span className="text-xl">🎙️</span>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-[var(--foreground)]">モード</div>
+                  <div className="text-xs text-[var(--muted)]">{chatMode === "text" ? "テキストモード" : "おしゃべりモード"}</div>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
                   <polyline points="9 18 15 12 9 6" />
@@ -1309,6 +1668,80 @@ export default function Home() {
                 </button>
               ))}
             </div>
+          </>
+        )}
+
+        {profileSection === "mode" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">モード</h2>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => setChatMode("text")}
+                className={`w-full p-4 rounded-xl border text-left transition-all ${
+                  chatMode === "text"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                    : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💬</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--foreground)]">テキストモード</div>
+                    <div className="text-xs text-[var(--muted)] mt-1">キーボードで入力してチャット</div>
+                  </div>
+                  {chatMode === "text" && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setChatMode("voice")}
+                className={`w-full p-4 rounded-xl border text-left transition-all ${
+                  chatMode === "voice"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                    : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🎙️</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--foreground)]">おしゃべりモード</div>
+                    <div className="text-xs text-[var(--muted)] mt-1">声で話しかけてリアルタイム会話</div>
+                  </div>
+                  {chatMode === "voice" && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {chatMode === "voice" && (
+              <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl">💡</span>
+                  <div className="text-sm text-amber-600 lg:text-amber-400">
+                    おしゃべりモードではマイクボタンをタップして話しかけてください。AIがリアルタイムで音声で応答します。
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
       </aside>
