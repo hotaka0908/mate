@@ -682,7 +682,7 @@ export default function Home() {
                         selectedCharacter === "coder" ? "Coda" :
                         "Memori"
                       }
-                      className="w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] lg:w-[500px] lg:h-[500px] object-contain transition-all duration-300"
+                      className="w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] object-contain transition-all duration-300"
                     />
                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-[var(--muted)]">
                       タップで全員表示に戻る
@@ -699,7 +699,7 @@ export default function Home() {
                       <img
                         src="/MemoryAI.png"
                         alt="Memori"
-                        className="w-[100px] h-[100px] sm:w-[180px] sm:h-[180px] lg:w-[358px] lg:h-[358px] object-contain"
+                        className="w-[130px] h-[130px] sm:w-[220px] sm:h-[220px] lg:w-[358px] lg:h-[358px] object-contain"
                       />
                     </div>
 
@@ -711,7 +711,7 @@ export default function Home() {
                       <img
                         src="/conductor.png"
                         alt="Maestro"
-                        className="w-[160px] h-[160px] sm:w-[280px] sm:h-[280px] lg:w-[614px] lg:h-[614px] object-contain object-bottom"
+                        className="w-[200px] h-[200px] sm:w-[320px] sm:h-[320px] lg:w-[614px] lg:h-[614px] object-contain object-bottom"
                       />
                     </div>
 
@@ -723,7 +723,7 @@ export default function Home() {
                       <img
                         src="/CoderAI.png"
                         alt="Coda"
-                        className="w-[100px] h-[100px] sm:w-[180px] sm:h-[180px] lg:w-[358px] lg:h-[358px] object-contain"
+                        className="w-[130px] h-[130px] sm:w-[220px] sm:h-[220px] lg:w-[358px] lg:h-[358px] object-contain"
                       />
                     </div>
                   </>
