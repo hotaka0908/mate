@@ -468,10 +468,21 @@ export default function Home() {
               {/* AI提案 */}
               <div className="p-4 flex-1 flex flex-col gap-3">
                 <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="text-sm leading-relaxed text-green-600 lg:text-green-400 flex-1">
-                      {refreshedSuggestions[currentCard.id]?.suggestedAction || currentCard.suggestedAction}
-                    </div>
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      value={refreshedSuggestions[currentCard.id]?.suggestedAction ?? currentCard.suggestedAction}
+                      onChange={(e) => {
+                        setRefreshedSuggestions({
+                          ...refreshedSuggestions,
+                          [currentCard.id]: {
+                            suggestedAction: e.target.value,
+                            declineMessage: refreshedSuggestions[currentCard.id]?.declineMessage ?? currentCard.declineMessage,
+                          },
+                        });
+                      }}
+                      className="flex-1 text-sm leading-relaxed text-green-600 lg:text-green-400 bg-transparent resize-none focus:outline-none"
+                      rows={3}
+                    />
                     <button
                       onClick={() => handleRefreshSuggestion("accept")}
                       disabled={isRefreshing !== null}
@@ -497,10 +508,21 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="text-sm leading-relaxed text-red-600 lg:text-red-400 flex-1">
-                      {refreshedSuggestions[currentCard.id]?.declineMessage || currentCard.declineMessage}
-                    </div>
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      value={refreshedSuggestions[currentCard.id]?.declineMessage ?? currentCard.declineMessage}
+                      onChange={(e) => {
+                        setRefreshedSuggestions({
+                          ...refreshedSuggestions,
+                          [currentCard.id]: {
+                            suggestedAction: refreshedSuggestions[currentCard.id]?.suggestedAction ?? currentCard.suggestedAction,
+                            declineMessage: e.target.value,
+                          },
+                        });
+                      }}
+                      className="flex-1 text-sm leading-relaxed text-red-600 lg:text-red-400 bg-transparent resize-none focus:outline-none"
+                      rows={3}
+                    />
                     <button
                       onClick={() => handleRefreshSuggestion("decline")}
                       disabled={isRefreshing !== null}
