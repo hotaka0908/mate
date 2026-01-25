@@ -164,7 +164,8 @@ const CAPABILITIES = [
   },
 ];
 
-type MobileTab = "schedule" | "chat" | "capabilities" | "notifications";
+type MobileTab = "schedule" | "chat" | "profile" | "notifications";
+type ProfileSection = "main" | "capabilities" | "settings";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -179,6 +180,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
+  const [profileSection, setProfileSection] = useState<ProfileSection>("main");
   const [refreshedSuggestions, setRefreshedSuggestions] = useState<Record<string, { suggestedAction: string; declineMessage: string }>>({});
   const [isRefreshing, setIsRefreshing] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -823,15 +825,8 @@ export default function Home() {
         </div>
       </main>
 
-      {/* 右サイドバー - できること */}
-      <aside className={`
-        ${mobileTab === "capabilities" ? "flex" : "hidden"}
-        lg:flex
-        fixed lg:static inset-0 top-14 bottom-16 lg:top-0 lg:bottom-0
-        w-full lg:w-80
-        border-l border-[var(--card-border)] bg-[var(--card-bg)] p-4 overflow-y-auto flex-col
-        z-40
-      `}>
+      {/* 右サイドバー - できること（デスクトップのみ） */}
+      <aside className="hidden lg:flex lg:static lg:w-80 border-l border-[var(--card-border)] bg-[var(--card-bg)] p-4 overflow-y-auto flex-col">
         <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-4">
           できること
         </h2>
@@ -888,6 +883,195 @@ export default function Home() {
         )}
       </aside>
 
+      {/* モバイル用プロフィール画面 */}
+      <aside className={`
+        ${mobileTab === "profile" ? "flex" : "hidden"}
+        lg:hidden
+        fixed inset-0 top-14 bottom-16
+        w-full
+        bg-[var(--card-bg)] p-4 flex-col overflow-y-auto
+        z-40
+      `}>
+        {profileSection === "main" && (
+          <>
+            {/* プロフィールヘッダー */}
+            <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-[var(--background)]">
+              <div className="w-16 h-16 rounded-full bg-[var(--primary)] flex items-center justify-center text-2xl text-white">
+                👤
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-[var(--foreground)]">ユーザー</h2>
+                <p className="text-sm text-[var(--muted)]">user@example.com</p>
+              </div>
+            </div>
+
+            {/* メニュー */}
+            <div className="space-y-2">
+              <button
+                onClick={() => setProfileSection("capabilities")}
+                className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
+              >
+                <span className="text-xl">⚡</span>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-[var(--foreground)]">できること</div>
+                  <div className="text-xs text-[var(--muted)]">アプリ連携・機能一覧</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              <button
+                onClick={() => setProfileSection("settings")}
+                className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
+              >
+                <span className="text-xl">⚙️</span>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-[var(--foreground)]">設定</div>
+                  <div className="text-xs text-[var(--muted)]">通知・プライバシー・アカウント</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              <button className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors">
+                <span className="text-xl">❓</span>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-[var(--foreground)]">ヘルプ</div>
+                  <div className="text-xs text-[var(--muted)]">使い方・よくある質問</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
+          </>
+        )}
+
+        {profileSection === "capabilities" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">できること</h2>
+
+            {/* カテゴリボタン */}
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {CAPABILITIES.map((cap) => (
+                <button
+                  key={cap.id}
+                  onClick={() => setSelectedCapability(selectedCapability === cap.id ? null : cap.id)}
+                  className={`p-3 rounded-xl border text-left transition-all ${
+                    selectedCapability === cap.id
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                      : "border-[var(--card-border)] hover:border-[var(--primary)]"
+                  }`}
+                >
+                  <span className="text-xl">{cap.icon}</span>
+                  <div className="text-sm font-medium mt-1">{cap.name}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* 選択したカテゴリのアプリ一覧 */}
+            {selectedCapability && (
+              <div className="mt-4 pt-4 border-t border-[var(--card-border)]">
+                <h3 className="text-sm font-semibold text-[var(--muted)] mb-3">
+                  {selectedCapability === "talk"
+                    ? "会話できるキャラ"
+                    : `${CAPABILITIES.find((c) => c.id === selectedCapability)?.name}に使えるアプリ`}
+                </h3>
+                <div className="space-y-2">
+                  {CAPABILITIES.find((c) => c.id === selectedCapability)?.apps.map((app, index) => (
+                    <div
+                      key={index}
+                      onClick={() => {
+                        if ('charId' in app && app.charId) {
+                          setSelectedCharacter(app.charId as string);
+                          setMobileTab("chat");
+                        }
+                      }}
+                      className={`p-3 rounded-xl border transition-colors cursor-pointer ${
+                        'charId' in app && app.charId === selectedCharacter
+                          ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                          : "border-[var(--card-border)] hover:border-[var(--primary)]"
+                      }`}
+                    >
+                      <div className="font-medium text-sm">{app.name}</div>
+                      <p className="text-xs text-[var(--muted)] mt-1">
+                        {app.capability}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {profileSection === "settings" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">設定</h2>
+
+            <div className="space-y-2">
+              <div className="p-4 rounded-xl bg-[var(--background)]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-[var(--foreground)]">通知</div>
+                    <div className="text-xs text-[var(--muted)]">プッシュ通知を受け取る</div>
+                  </div>
+                  <div className="w-12 h-7 bg-[var(--primary)] rounded-full relative">
+                    <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[var(--background)]">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium text-[var(--foreground)]">ダークモード</div>
+                    <div className="text-xs text-[var(--muted)]">PCのみダークモード</div>
+                  </div>
+                  <div className="w-12 h-7 bg-[var(--primary)] rounded-full relative">
+                    <div className="absolute right-1 top-1 w-5 h-5 bg-white rounded-full"></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[var(--background)]">
+                <div className="font-medium text-[var(--foreground)]">言語</div>
+                <div className="text-xs text-[var(--muted)]">日本語</div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[var(--background)]">
+                <div className="font-medium text-[var(--foreground)]">バージョン</div>
+                <div className="text-xs text-[var(--muted)]">1.0.0</div>
+              </div>
+            </div>
+          </>
+        )}
+      </aside>
+
       {/* モバイル用ボトムナビゲーション */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--card-bg)] border-t border-[var(--card-border)]">
         <div className="flex items-center justify-around py-2">
@@ -930,15 +1114,18 @@ export default function Home() {
             <span className="text-xs">チャット</span>
           </button>
           <button
-            onClick={() => setMobileTab("capabilities")}
+            onClick={() => {
+              setMobileTab("profile");
+              setProfileSection("main");
+            }}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
-              mobileTab === "capabilities"
+              mobileTab === "profile"
                 ? "text-[var(--primary)]"
                 : "text-[var(--muted)]"
             }`}
           >
-            <span className="text-xl">⚡</span>
-            <span className="text-xs">できること</span>
+            <span className="text-xl">👤</span>
+            <span className="text-xs">プロフィール</span>
           </button>
         </div>
       </nav>
