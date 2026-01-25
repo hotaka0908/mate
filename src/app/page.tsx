@@ -163,6 +163,8 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
+  const [refreshedSuggestions, setRefreshedSuggestions] = useState<Record<string, { suggestedAction: string; declineMessage: string }>>({});
+  const [isRefreshing, setIsRefreshing] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleCharacterClick = (charId: string) => {
@@ -177,15 +179,74 @@ export default function Home() {
 
     setSwipeDirection(direction);
 
+    const currentSuggestions = refreshedSuggestions[currentCard.id] || {
+      suggestedAction: currentCard.suggestedAction,
+      declineMessage: currentCard.declineMessage,
+    };
+
     setTimeout(() => {
       if (direction === "right") {
-        console.log("YES - 送信:", currentCard.suggestedAction);
+        console.log("YES - 送信:", currentSuggestions.suggestedAction);
       } else {
-        console.log("NO - 送信:", currentCard.declineMessage);
+        console.log("NO - 送信:", currentSuggestions.declineMessage);
       }
       setProcessedCards([...processedCards, currentCard.id]);
       setSwipeDirection(null);
     }, 300);
+  };
+
+  const handleRefreshSuggestion = async (type: "accept" | "decline") => {
+    if (!currentCard || isRefreshing) return;
+
+    setIsRefreshing(type);
+
+    const currentSuggestions = refreshedSuggestions[currentCard.id] || {
+      suggestedAction: currentCard.suggestedAction,
+      declineMessage: currentCard.declineMessage,
+    };
+
+    const prompt = type === "accept"
+      ? `以下の状況に対する承諾の返信文を、元の文章とは少し違う表現で作成してください。フレンドリーで簡潔に。
+
+状況: ${currentCard.summary}
+詳細: ${currentCard.content}
+元の文章: ${currentSuggestions.suggestedAction}
+
+新しい返信文のみを出力してください。`
+      : `以下の状況に対する丁寧なお断りの返信文を、元の文章とは少し違う表現で作成してください。簡潔に。
+
+状況: ${currentCard.summary}
+詳細: ${currentCard.content}
+元の文章: ${currentSuggestions.declineMessage}
+
+新しい返信文のみを出力してください。`;
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          model: selectedModel.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.response) {
+        setRefreshedSuggestions({
+          ...refreshedSuggestions,
+          [currentCard.id]: {
+            ...currentSuggestions,
+            [type === "accept" ? "suggestedAction" : "declineMessage"]: data.response.trim(),
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Refresh error:", error);
+    } finally {
+      setIsRefreshing(null);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -407,10 +468,62 @@ export default function Home() {
               {/* AI提案 */}
               <div className="p-4 flex-1 flex flex-col gap-3">
                 <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
-                  <div className="text-sm leading-relaxed text-green-400">{currentCard.suggestedAction}</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm leading-relaxed text-green-600 lg:text-green-400 flex-1">
+                      {refreshedSuggestions[currentCard.id]?.suggestedAction || currentCard.suggestedAction}
+                    </div>
+                    <button
+                      onClick={() => handleRefreshSuggestion("accept")}
+                      disabled={isRefreshing !== null}
+                      className="shrink-0 p-1.5 rounded-lg hover:bg-green-500/20 transition-colors disabled:opacity-50"
+                      title="文章をリフレッシュ"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-green-600 lg:text-green-400 ${isRefreshing === "accept" ? "animate-spin" : ""}`}
+                      >
+                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
                 <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
-                  <div className="text-sm leading-relaxed text-red-400">{currentCard.declineMessage}</div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-sm leading-relaxed text-red-600 lg:text-red-400 flex-1">
+                      {refreshedSuggestions[currentCard.id]?.declineMessage || currentCard.declineMessage}
+                    </div>
+                    <button
+                      onClick={() => handleRefreshSuggestion("decline")}
+                      disabled={isRefreshing !== null}
+                      className="shrink-0 p-1.5 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                      title="文章をリフレッシュ"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-red-600 lg:text-red-400 ${isRefreshing === "decline" ? "animate-spin" : ""}`}
+                      >
+                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
 
