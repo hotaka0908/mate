@@ -192,8 +192,39 @@ export default function Home() {
 
   const currentCard = LIVE_CONTEXT.filter(item => !processedCards.includes(item.id))[0];
 
+  // 効果音を再生する関数
+  const playSound = (type: "yes" | "no") => {
+    const audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    if (type === "yes") {
+      // YES: 上昇音（明るい音）
+      oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(600, audioContext.currentTime + 0.1);
+      oscillator.type = "sine";
+    } else {
+      // NO: 下降音（落ち着いた音）
+      oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(200, audioContext.currentTime + 0.1);
+      oscillator.type = "sine";
+    }
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.15);
+  };
+
   const handleSwipe = (direction: "left" | "right") => {
     if (!currentCard) return;
+
+    // 効果音を再生
+    playSound(direction === "right" ? "yes" : "no");
 
     setSwipeDirection(direction);
 
