@@ -346,11 +346,11 @@ export default function Home() {
         lg:flex
         fixed lg:static inset-0 top-14 bottom-16 lg:top-0 lg:bottom-0
         w-full lg:w-96
-        border-r border-[var(--card-border)] bg-[var(--card-bg)] p-4 flex-col overflow-y-auto
+        border-r border-[var(--card-border)] bg-[var(--card-bg)] p-2 lg:p-4 flex-col overflow-y-auto
         z-40
       `}>
         {/* カレンダーセクション - モバイルでは予定タブでのみ表示 */}
-        <div className={`mb-6 ${mobileTab === "schedule" ? "block" : "hidden"} lg:block`}>
+        <div className={`mb-6 flex-1 flex flex-col ${mobileTab === "schedule" ? "flex" : "hidden"} lg:block`}>
           {/* 月タイトル */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-[var(--foreground)]">
@@ -412,8 +412,11 @@ export default function Home() {
               }
             }
 
+            // 週の数を計算
+            const totalWeeks = Math.ceil(calendarDays.length / 7);
+
             return (
-              <div className="grid grid-cols-7 gap-px bg-[var(--card-border)] rounded-xl overflow-hidden">
+              <div className="flex-1 grid grid-cols-7 gap-px bg-[var(--card-border)] rounded-xl lg:rounded-xl overflow-hidden" style={{ gridTemplateRows: Array(totalWeeks).fill(0).map((_, i) => i === currentWeekRow ? '2fr' : '1fr').join(' ') }}>
                 {calendarDays.map((day, index) => {
                   const isToday = day === today.getDate() && isCurrentMonth;
                   const dateKey = day ? `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
@@ -425,11 +428,7 @@ export default function Home() {
                   return (
                     <div
                       key={index}
-                      className={`bg-[var(--card-bg)] p-1 ${
-                        isCurrentWeek
-                          ? "min-h-[100px] lg:min-h-[120px]"
-                          : "min-h-[50px] lg:min-h-[60px]"
-                      } ${
+                      className={`bg-[var(--card-bg)] p-1 lg:p-1 ${
                         day ? "cursor-pointer hover:bg-[var(--background)]" : ""
                       }`}
                     >
