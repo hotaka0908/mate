@@ -68,6 +68,25 @@ const CALENDAR_EVENTS: Record<string, { title: string; color: string; icon?: str
   "2025-01-31": [{ title: "締切", color: "red", icon: "⚠️" }],
 };
 
+// 1日のスケジュール（時間ベース）
+const DAILY_SCHEDULE: Record<string, { time: string; title: string; app: string }[]> = {
+  "2025-01-25": [
+    { time: "09:00", title: "朝のルーティン", app: "ヘルスケア" },
+    { time: "10:00", title: "チームスタンドアップ", app: "Zoom" },
+    { time: "12:00", title: "ランチ", app: "" },
+    { time: "14:00", title: "四半期レビュー", app: "Teams" },
+    { time: "16:00", title: "1on1 with 田中さん", app: "Zoom" },
+    { time: "18:00", title: "ジム", app: "ヘルスケア" },
+  ],
+};
+
+// 天気データ（ダミー）
+const WEATHER_DATA: Record<string, { temp: string; condition: string; icon: string }> = {
+  "2025-01-25": { temp: "8°C", condition: "晴れ", icon: "☀️" },
+  "2025-01-26": { temp: "6°C", condition: "曇り", icon: "☁️" },
+  "2025-01-27": { temp: "4°C", condition: "雨", icon: "🌧️" },
+};
+
 // カレンダーヘルパー関数
 const getCalendarDays = (year: number, month: number) => {
   const firstDay = new Date(year, month, 1);
@@ -175,6 +194,7 @@ export default function Home() {
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [processedCards, setProcessedCards] = useState<string[]>([]);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [jumpingChar, setJumpingChar] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -384,6 +404,88 @@ export default function Home() {
       `}>
         {/* カレンダーセクション - モバイルでは予定タブでのみ表示 */}
         <div className={`mb-6 flex-1 flex flex-col ${mobileTab === "schedule" ? "flex" : "hidden"} lg:block`}>
+          {selectedDate ? (
+            /* 日付詳細ビュー */
+            <>
+              {/* 戻るボタン */}
+              <button
+                onClick={() => setSelectedDate(null)}
+                className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+                <span>カレンダーに戻る</span>
+              </button>
+
+              {/* 日付 */}
+              <div className="text-center mb-4">
+                <div className="text-4xl font-bold text-[var(--foreground)]">
+                  {new Date(selectedDate).getDate()}
+                </div>
+                <div className="text-lg text-[var(--muted)]">
+                  {new Date(selectedDate).getFullYear()}年{new Date(selectedDate).getMonth() + 1}月
+                  （{WEEKDAYS[new Date(selectedDate).getDay()]}）
+                </div>
+              </div>
+
+              {/* 天気 */}
+              <div className="p-4 rounded-2xl bg-[var(--background)] mb-4">
+                <div className="flex items-center justify-center gap-4">
+                  <span className="text-5xl">
+                    {WEATHER_DATA[selectedDate]?.icon || "☀️"}
+                  </span>
+                  <div>
+                    <div className="text-2xl font-bold text-[var(--foreground)]">
+                      {WEATHER_DATA[selectedDate]?.temp || "10°C"}
+                    </div>
+                    <div className="text-sm text-[var(--muted)]">
+                      {WEATHER_DATA[selectedDate]?.condition || "晴れ"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 画像 */}
+              <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-video flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="text-6xl mb-2">🌅</div>
+                  <div className="text-sm opacity-80">今日の一枚</div>
+                </div>
+              </div>
+
+              {/* 1日の予定 */}
+              <div>
+                <h3 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
+                  今日の予定
+                </h3>
+                <div className="space-y-2">
+                  {(DAILY_SCHEDULE[selectedDate] || [
+                    { time: "09:00", title: "予定なし", app: "" }
+                  ]).map((item, index) => (
+                    <div
+                      key={index}
+                      className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)]"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="text-sm text-[var(--primary)] font-medium w-14">
+                          {item.time}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-[var(--foreground)]">{item.title}</div>
+                          {item.app && (
+                            <div className="text-xs text-[var(--muted)]">{item.app}</div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            /* カレンダービュー */
+            <>
           {/* 月タイトル */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-[var(--foreground)]">
@@ -461,6 +563,11 @@ export default function Home() {
                   return (
                     <div
                       key={index}
+                      onClick={() => {
+                        if (day && dateKey) {
+                          setSelectedDate(dateKey);
+                        }
+                      }}
                       className={`bg-[var(--card-bg)] p-1 lg:p-1 ${
                         day ? "cursor-pointer hover:bg-[var(--background)]" : ""
                       }`}
@@ -504,6 +611,8 @@ export default function Home() {
               </div>
             );
           })()}
+            </>
+          )}
         </div>
 
         {/* 今起きていること - モバイルでは通知タブでのみ表示 */}
