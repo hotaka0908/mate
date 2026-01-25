@@ -148,6 +148,8 @@ const CAPABILITIES = [
   },
 ];
 
+type MobileTab = "schedule" | "chat" | "capabilities" | "notifications";
+
 export default function Home() {
   const [input, setInput] = useState("");
   const [selectedModel, setSelectedModel] = useState(LLM_MODELS[0]);
@@ -160,6 +162,7 @@ export default function Home() {
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>("chat");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleCharacterClick = (charId: string) => {
@@ -243,11 +246,34 @@ export default function Home() {
   }, [currentCard, processedCards]);
 
   return (
-    <div className="min-h-screen flex">
-      {/* 左サイドバー */}
-      <aside className="w-96 border-r border-[var(--card-border)] bg-[var(--card-bg)] p-4 flex flex-col overflow-y-auto">
-        {/* 予定セクション */}
-        <div className="mb-6">
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* モバイル用ヘッダー */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[var(--card-bg)] border-b border-[var(--card-border)] px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-[var(--primary)]">Mate</h1>
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span className="text-xs text-[var(--muted)]">
+              {LIVE_CONTEXT.length - processedCards.length} 件
+            </span>
+          </div>
+        </div>
+      </header>
+
+      {/* 左サイドバー - デスクトップ表示 / モバイルでは条件付き表示 */}
+      <aside className={`
+        ${mobileTab === "schedule" || mobileTab === "notifications" ? "flex" : "hidden"}
+        lg:flex
+        fixed lg:static inset-0 top-14 bottom-16 lg:top-0 lg:bottom-0
+        w-full lg:w-96
+        border-r border-[var(--card-border)] bg-[var(--card-bg)] p-4 flex-col overflow-y-auto
+        z-40
+      `}>
+        {/* 予定セクション - モバイルでは予定タブでのみ表示 */}
+        <div className={`mb-6 ${mobileTab === "schedule" ? "block" : "hidden"} lg:block`}>
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">📅</span>
             <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
@@ -332,22 +358,24 @@ export default function Home() {
           </div>
         </div>
 
-        {/* 今起きていること */}
-        <div className="flex items-center gap-2 mb-4">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-          </span>
-          <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
-            今起きていること
-          </h2>
-          <span className="text-xs text-[var(--muted)] ml-auto">
-            {LIVE_CONTEXT.length - processedCards.length} 件
-          </span>
+        {/* 今起きていること - モバイルでは通知タブでのみ表示 */}
+        <div className={`${mobileTab === "notifications" ? "block" : "hidden"} lg:block`}>
+          <div className="flex items-center gap-2 mb-4">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
+              今起きていること
+            </h2>
+            <span className="text-xs text-[var(--muted)] ml-auto">
+              {LIVE_CONTEXT.length - processedCards.length} 件
+            </span>
+          </div>
         </div>
 
-        {/* スワイプカード */}
-        <div className="flex-1 flex flex-col">
+        {/* スワイプカード - モバイルでは通知タブでのみ表示 */}
+        <div className={`flex-1 flex flex-col ${mobileTab === "notifications" ? "flex" : "hidden"} lg:flex`}>
           {currentCard ? (
             <div
               className={`flex-1 flex flex-col rounded-2xl border border-[var(--card-border)] bg-[var(--background)] overflow-hidden transition-all duration-300 ${
@@ -422,7 +450,12 @@ export default function Home() {
       </aside>
 
       {/* メインコンテンツエリア */}
-      <main className="flex-1 flex flex-col p-8">
+      <main className={`
+        ${mobileTab === "chat" ? "flex" : "hidden"}
+        lg:flex
+        flex-1 flex-col p-4 lg:p-8
+        pt-20 pb-20 lg:pt-8 lg:pb-8
+      `}>
         <div className="w-full max-w-2xl mx-auto flex-1 flex flex-col">
           {/* メッセージがある場合は会話表示、ない場合はキャラクター表示 */}
           {messages.length > 0 ? (
@@ -482,10 +515,10 @@ export default function Home() {
                         selectedCharacter === "coder" ? "Coda" :
                         "Memori"
                       }
-                      className="w-[500px] h-[500px] object-contain transition-all duration-300"
+                      className="w-[200px] h-[200px] sm:w-[300px] sm:h-[300px] lg:w-[500px] lg:h-[500px] object-contain transition-all duration-300"
                     />
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-sm text-[var(--muted)]">
-                      クリックで全員表示に戻る
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-[var(--muted)]">
+                      タップで全員表示に戻る
                     </div>
                   </div>
                 ) : (
@@ -499,7 +532,7 @@ export default function Home() {
                       <img
                         src="/MemoryAI.png"
                         alt="Memori"
-                        className="w-[358px] h-[358px] object-contain"
+                        className="w-[80px] h-[80px] sm:w-[150px] sm:h-[150px] lg:w-[358px] lg:h-[358px] object-contain"
                       />
                     </div>
 
@@ -511,7 +544,7 @@ export default function Home() {
                       <img
                         src="/conductor.png"
                         alt="Maestro"
-                        className="w-[614px] h-[614px] object-contain object-bottom"
+                        className="w-[120px] h-[120px] sm:w-[250px] sm:h-[250px] lg:w-[614px] lg:h-[614px] object-contain object-bottom"
                       />
                     </div>
 
@@ -523,7 +556,7 @@ export default function Home() {
                       <img
                         src="/CoderAI.png"
                         alt="Coda"
-                        className="w-[358px] h-[358px] object-contain"
+                        className="w-[80px] h-[80px] sm:w-[150px] sm:h-[150px] lg:w-[358px] lg:h-[358px] object-contain"
                       />
                     </div>
                   </>
@@ -626,7 +659,14 @@ export default function Home() {
       </main>
 
       {/* 右サイドバー - できること */}
-      <aside className="w-80 border-l border-[var(--card-border)] bg-[var(--card-bg)] p-4 overflow-y-auto">
+      <aside className={`
+        ${mobileTab === "capabilities" ? "flex" : "hidden"}
+        lg:flex
+        fixed lg:static inset-0 top-14 bottom-16 lg:top-0 lg:bottom-0
+        w-full lg:w-80
+        border-l border-[var(--card-border)] bg-[var(--card-bg)] p-4 overflow-y-auto flex-col
+        z-40
+      `}>
         <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-4">
           できること
         </h2>
@@ -682,6 +722,61 @@ export default function Home() {
           </div>
         )}
       </aside>
+
+      {/* モバイル用ボトムナビゲーション */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[var(--card-bg)] border-t border-[var(--card-border)]">
+        <div className="flex items-center justify-around py-2">
+          <button
+            onClick={() => setMobileTab("schedule")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
+              mobileTab === "schedule"
+                ? "text-[var(--primary)]"
+                : "text-[var(--muted)]"
+            }`}
+          >
+            <span className="text-xl">📅</span>
+            <span className="text-xs">予定</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("notifications")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors relative ${
+              mobileTab === "notifications"
+                ? "text-[var(--primary)]"
+                : "text-[var(--muted)]"
+            }`}
+          >
+            <span className="text-xl">🔔</span>
+            <span className="text-xs">通知</span>
+            {LIVE_CONTEXT.length - processedCards.length > 0 && (
+              <span className="absolute top-1 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {LIVE_CONTEXT.length - processedCards.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setMobileTab("chat")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
+              mobileTab === "chat"
+                ? "text-[var(--primary)]"
+                : "text-[var(--muted)]"
+            }`}
+          >
+            <span className="text-xl">💬</span>
+            <span className="text-xs">チャット</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("capabilities")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
+              mobileTab === "capabilities"
+                ? "text-[var(--primary)]"
+                : "text-[var(--muted)]"
+            }`}
+          >
+            <span className="text-xl">⚡</span>
+            <span className="text-xs">できること</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 }

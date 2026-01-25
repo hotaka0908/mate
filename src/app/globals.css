@@ -63,3 +63,26 @@ aside {
 .animate-jump {
   animation: jump 0.4s ease-in-out;
 }
+
+/* モバイル用スタイル */
+@media (max-width: 1023px) {
+  /* モバイルでのセーフエリア対応 */
+  body {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* モバイルでのスクロール改善 */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* モバイルでのタップハイライト無効化 */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ボトムナビゲーションのセーフエリア対応 */
+nav.fixed.bottom-0 {
+  padding-bottom: env(safe-area-inset-bottom);
+}
