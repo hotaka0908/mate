@@ -418,28 +418,25 @@ export default function Home() {
                 <span>カレンダーに戻る</span>
               </button>
 
-              {/* 日付 */}
-              <div className="text-center mb-4">
-                <div className="text-4xl font-bold text-[var(--foreground)]">
-                  {new Date(selectedDate).getDate()}
+              {/* 日付と天気 */}
+              <div className="flex items-center justify-between mb-4 p-4 rounded-2xl bg-[var(--background)]">
+                <div>
+                  <div className="text-2xl font-bold text-[var(--foreground)]">
+                    {new Date(selectedDate).getMonth() + 1}/{new Date(selectedDate).getDate()} {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(selectedDate).getDay()]}
+                  </div>
+                  <div className="text-sm text-[var(--muted)]">
+                    {new Date(selectedDate).getFullYear()}年
+                  </div>
                 </div>
-                <div className="text-lg text-[var(--muted)]">
-                  {new Date(selectedDate).getFullYear()}年{new Date(selectedDate).getMonth() + 1}月
-                  （{WEEKDAYS[new Date(selectedDate).getDay()]}）
-                </div>
-              </div>
-
-              {/* 天気 */}
-              <div className="p-4 rounded-2xl bg-[var(--background)] mb-4">
-                <div className="flex items-center justify-center gap-4">
-                  <span className="text-5xl">
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl">
                     {WEATHER_DATA[selectedDate]?.icon || "☀️"}
                   </span>
-                  <div>
-                    <div className="text-2xl font-bold text-[var(--foreground)]">
+                  <div className="text-right">
+                    <div className="text-xl font-bold text-[var(--foreground)]">
                       {WEATHER_DATA[selectedDate]?.temp || "10°C"}
                     </div>
-                    <div className="text-sm text-[var(--muted)]">
+                    <div className="text-xs text-[var(--muted)]">
                       {WEATHER_DATA[selectedDate]?.condition || "晴れ"}
                     </div>
                   </div>
