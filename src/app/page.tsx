@@ -203,6 +203,9 @@ export default function Home() {
   const [profileSection, setProfileSection] = useState<ProfileSection>("main");
   const [refreshedSuggestions, setRefreshedSuggestions] = useState<Record<string, { suggestedAction: string; declineMessage: string }>>({});
   const [isRefreshing, setIsRefreshing] = useState<string | null>(null);
+  const [generatedImages, setGeneratedImages] = useState<Record<string, string>>({});
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageGenerationError, setImageGenerationError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const handleCharacterClick = (charId: string) => {
@@ -318,6 +321,44 @@ export default function Home() {
     }
   };
 
+  const generateImageForDate = async (dateKey: string) => {
+    if (isGeneratingImage) return;
+
+    setIsGeneratingImage(true);
+    setImageGenerationError(null);
+
+    try {
+      const schedule = DAILY_SCHEDULE[dateKey] || [];
+      const events = CALENDAR_EVENTS[dateKey] || [];
+
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: dateKey,
+          schedule,
+          events,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.imageUrl) {
+        setGeneratedImages((prev) => ({
+          ...prev,
+          [dateKey]: data.imageUrl,
+        }));
+      } else {
+        setImageGenerationError(data.error || "画像の生成に失敗しました");
+      }
+    } catch (error) {
+      console.error("Image generation error:", error);
+      setImageGenerationError(error instanceof Error ? error.message : "画像の生成に失敗しました");
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -361,6 +402,16 @@ export default function Home() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // 日付が選択されたときに画像を生成
+  useEffect(() => {
+    if (selectedDate && selectedDate !== "2025-01-25") {
+      // 既に生成済みでない場合のみ生成
+      if (!generatedImages[selectedDate] && !isGeneratingImage) {
+        generateImageForDate(selectedDate);
+      }
+    }
+  }, [selectedDate, generatedImages, isGeneratingImage]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -451,6 +502,42 @@ export default function Home() {
                     alt="今日の一枚"
                     className="w-full h-auto object-cover"
                   />
+                </div>
+              ) : generatedImages[selectedDate] ? (
+                <div className="rounded-2xl overflow-hidden mb-4">
+                  <img
+                    src={generatedImages[selectedDate]}
+                    alt="今日の一枚"
+                    className="w-full h-auto object-cover"
+                  />
+                </div>
+              ) : isGeneratingImage ? (
+                <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-square flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="text-4xl mb-3 animate-pulse">🎨</div>
+                    <div className="text-sm opacity-80">画像を生成中...</div>
+                    <div className="mt-2 flex justify-center gap-1">
+                      <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <span className="w-2 h-2 bg-white rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                  </div>
+                </div>
+              ) : imageGenerationError ? (
+                <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-red-400 to-red-600 aspect-video flex items-center justify-center">
+                  <div className="text-white text-center px-4">
+                    <div className="text-4xl mb-2">⚠️</div>
+                    <div className="text-sm opacity-90 mb-2">画像の生成に失敗しました</div>
+                    <button
+                      onClick={() => {
+                        setImageGenerationError(null);
+                        generateImageForDate(selectedDate);
+                      }}
+                      className="px-4 py-2 bg-white/20 rounded-lg text-sm hover:bg-white/30 transition-colors"
+                    >
+                      再試行
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-video flex items-center justify-center">
