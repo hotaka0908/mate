@@ -444,12 +444,22 @@ export default function Home() {
               </div>
 
               {/* 画像 */}
-              <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-video flex items-center justify-center">
-                <div className="text-white text-center">
-                  <div className="text-6xl mb-2">🌅</div>
-                  <div className="text-sm opacity-80">今日の一枚</div>
+              {selectedDate === "2025-01-25" ? (
+                <div className="rounded-2xl overflow-hidden mb-4">
+                  <img
+                    src="/day-photo-0125.jpg"
+                    alt="今日の一枚"
+                    className="w-full h-auto object-cover"
+                  />
                 </div>
-              </div>
+              ) : (
+                <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-video flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <div className="text-6xl mb-2">🌅</div>
+                    <div className="text-sm opacity-80">今日の一枚</div>
+                  </div>
+                </div>
+              )}
 
               {/* 1日の予定 */}
               <div>
