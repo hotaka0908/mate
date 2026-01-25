@@ -397,23 +397,42 @@ export default function Home() {
           </div>
 
           {/* カレンダーグリッド */}
-          <div className="grid grid-cols-7 gap-px bg-[var(--card-border)] rounded-xl overflow-hidden">
-            {getCalendarDays(calendarDate.getFullYear(), calendarDate.getMonth()).map((day, index) => {
-              const today = new Date();
-              const isToday = day === today.getDate() &&
-                calendarDate.getMonth() === today.getMonth() &&
-                calendarDate.getFullYear() === today.getFullYear();
-              const dateKey = day ? `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-              const events = dateKey ? CALENDAR_EVENTS[dateKey] : null;
-              const dayOfWeek = index % 7;
+          {(() => {
+            const calendarDays = getCalendarDays(calendarDate.getFullYear(), calendarDate.getMonth());
+            const today = new Date();
+            const isCurrentMonth = calendarDate.getMonth() === today.getMonth() &&
+              calendarDate.getFullYear() === today.getFullYear();
 
-              return (
-                <div
-                  key={index}
-                  className={`bg-[var(--card-bg)] min-h-[70px] lg:min-h-[80px] p-1 ${
-                    day ? "cursor-pointer hover:bg-[var(--background)]" : ""
-                  }`}
-                >
+            // 今日が含まれる週の行番号を計算
+            let currentWeekRow = -1;
+            if (isCurrentMonth) {
+              const todayIndex = calendarDays.findIndex(d => d === today.getDate());
+              if (todayIndex !== -1) {
+                currentWeekRow = Math.floor(todayIndex / 7);
+              }
+            }
+
+            return (
+              <div className="grid grid-cols-7 gap-px bg-[var(--card-border)] rounded-xl overflow-hidden">
+                {calendarDays.map((day, index) => {
+                  const isToday = day === today.getDate() && isCurrentMonth;
+                  const dateKey = day ? `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
+                  const events = dateKey ? CALENDAR_EVENTS[dateKey] : null;
+                  const dayOfWeek = index % 7;
+                  const weekRow = Math.floor(index / 7);
+                  const isCurrentWeek = weekRow === currentWeekRow;
+
+                  return (
+                    <div
+                      key={index}
+                      className={`bg-[var(--card-bg)] p-1 ${
+                        isCurrentWeek
+                          ? "min-h-[100px] lg:min-h-[120px]"
+                          : "min-h-[50px] lg:min-h-[60px]"
+                      } ${
+                        day ? "cursor-pointer hover:bg-[var(--background)]" : ""
+                      }`}
+                    >
                   {day && (
                     <>
                       <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center ${
@@ -447,10 +466,12 @@ export default function Home() {
                       ))}
                     </>
                   )}
-                </div>
-              );
-            })}
-          </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
 
         {/* 今起きていること - モバイルでは通知タブでのみ表示 */}
