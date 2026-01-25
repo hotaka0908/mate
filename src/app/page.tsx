@@ -165,7 +165,7 @@ const CAPABILITIES = [
 ];
 
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
-type ProfileSection = "main" | "capabilities" | "settings";
+type ProfileSection = "main" | "capabilities" | "settings" | "model";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -872,37 +872,19 @@ export default function Home() {
                 </svg>
               </button>
 
-              {/* モデル選択 */}
-              <div className="w-full p-4 rounded-xl bg-[var(--background)]">
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="text-xl">🤖</span>
+              <button
+                onClick={() => setProfileSection("model")}
+                className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
+              >
+                <span className="text-xl">🤖</span>
+                <div className="flex-1 text-left">
                   <div className="font-medium text-[var(--foreground)]">AIモデル</div>
+                  <div className="text-xs text-[var(--muted)]">{selectedModel.name} ({selectedModel.provider})</div>
                 </div>
-                <div className="space-y-2">
-                  {LLM_MODELS.map((model) => (
-                    <button
-                      key={model.id}
-                      onClick={() => setSelectedModel(model)}
-                      className={`w-full p-3 rounded-xl border text-left transition-all flex items-center gap-3 ${
-                        selectedModel.id === model.id
-                          ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                          : "border-[var(--card-border)] hover:border-[var(--primary)]"
-                      }`}
-                    >
-                      <span className={`w-2 h-2 rounded-full ${selectedModel.id === model.id ? "bg-green-500" : "bg-[var(--muted)]"}`} />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{model.name}</div>
-                        <div className="text-xs text-[var(--muted)]">{model.provider}</div>
-                      </div>
-                      {selectedModel.id === model.id && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
 
               <button
                 onClick={() => setProfileSection("settings")}
@@ -1050,6 +1032,48 @@ export default function Home() {
                 <div className="font-medium text-[var(--foreground)]">バージョン</div>
                 <div className="text-xs text-[var(--muted)]">1.0.0</div>
               </div>
+            </div>
+          </>
+        )}
+
+        {profileSection === "model" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">AIモデル</h2>
+
+            <div className="space-y-2">
+              {LLM_MODELS.map((model) => (
+                <button
+                  key={model.id}
+                  onClick={() => setSelectedModel(model)}
+                  className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                    selectedModel.id === model.id
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                      : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
+                  }`}
+                >
+                  <span className={`w-3 h-3 rounded-full ${selectedModel.id === model.id ? "bg-green-500" : "bg-[var(--muted)]"}`} />
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--foreground)]">{model.name}</div>
+                    <div className="text-xs text-[var(--muted)]">{model.provider}</div>
+                  </div>
+                  {selectedModel.id === model.id && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))}
             </div>
           </>
         )}
