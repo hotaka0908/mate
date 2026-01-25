@@ -48,7 +48,7 @@ export async function POST(request: Request) {
       size: "1024x1024",
     });
 
-    const imageUrl = response.data[0]?.url;
+    const imageUrl = response.data?.[0]?.url;
 
     if (!imageUrl) {
       throw new Error("Failed to generate image");
