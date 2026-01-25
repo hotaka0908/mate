@@ -420,13 +420,8 @@ export default function Home() {
 
               {/* 日付と天気 */}
               <div className="flex items-center justify-between mb-4 p-4 rounded-2xl bg-[var(--background)]">
-                <div>
-                  <div className="text-2xl font-bold text-[var(--foreground)]">
-                    {new Date(selectedDate).getMonth() + 1}/{new Date(selectedDate).getDate()} {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(selectedDate).getDay()]}
-                  </div>
-                  <div className="text-sm text-[var(--muted)]">
-                    {new Date(selectedDate).getFullYear()}年
-                  </div>
+                <div className="text-2xl font-bold text-[var(--foreground)]">
+                  {new Date(selectedDate).getMonth() + 1}/{new Date(selectedDate).getDate()} {WEEKDAYS[new Date(selectedDate).getDay()]}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-3xl">
