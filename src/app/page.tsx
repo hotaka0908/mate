@@ -56,25 +56,41 @@ const LIVE_CONTEXT = [
   },
 ];
 
-const SCHEDULE = {
-  day: [
-    { id: "1", time: "10:00", title: "チームスタンドアップ", app: "Zoom" },
-    { id: "2", time: "14:00", title: "クライアントミーティング", app: "Teams" },
-    { id: "3", time: "16:00", title: "1on1 with 田中さん", app: "Zoom" },
-  ],
-  week: [
-    { id: "1", day: "月", title: "週次定例", app: "Zoom" },
-    { id: "2", day: "火", title: "デザインレビュー", app: "Figma" },
-    { id: "3", day: "水", title: "スプリントプランニング", app: "Notion" },
-    { id: "4", day: "木", title: "プロダクトMTG", app: "Teams" },
-    { id: "5", day: "金", title: "振り返り", app: "Miro" },
-  ],
-  month: [
-    { id: "1", date: "1/20", title: "月次報告会", app: "Zoom" },
-    { id: "2", date: "1/25", title: "四半期レビュー", app: "Teams" },
-    { id: "3", date: "1/31", title: "締め切り: プロジェクトA", app: "Notion" },
-  ],
+// カレンダーイベント（日付ベース）
+const CALENDAR_EVENTS: Record<string, { title: string; color: string; icon?: string }[]> = {
+  "2025-01-01": [{ title: "元日", color: "purple", icon: "⭐" }],
+  "2025-01-12": [{ title: "成人の", color: "purple", icon: "⭐" }],
+  "2025-01-15": [{ title: "かいざ", color: "gray", icon: "🎁" }],
+  "2025-01-18": [{ title: "今村さ", color: "gray", icon: "🎁" }],
+  "2025-01-20": [{ title: "月次報告", color: "blue", icon: "📅" }],
+  "2025-01-25": [{ title: "四半期", color: "blue", icon: "📅" }],
+  "2025-01-27": [{ title: "MTG", color: "green", icon: "🎯" }],
+  "2025-01-31": [{ title: "締切", color: "red", icon: "⚠️" }],
 };
+
+// カレンダーヘルパー関数
+const getCalendarDays = (year: number, month: number) => {
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startDayOfWeek = firstDay.getDay();
+
+  const days: (number | null)[] = [];
+
+  // 前月の空白
+  for (let i = 0; i < startDayOfWeek; i++) {
+    days.push(null);
+  }
+
+  // 当月の日付
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i);
+  }
+
+  return days;
+};
+
+const WEEKDAYS = ["日", "月", "火", "水", "木", "金", "土"];
 
 const CAPABILITIES = [
   {
@@ -157,7 +173,7 @@ export default function Home() {
   const [selectedCapability, setSelectedCapability] = useState<string | null>(null);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [processedCards, setProcessedCards] = useState<string[]>([]);
-  const [scheduleView, setScheduleView] = useState<"day" | "week" | "month">("day");
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [jumpingChar, setJumpingChar] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -333,89 +349,107 @@ export default function Home() {
         border-r border-[var(--card-border)] bg-[var(--card-bg)] p-4 flex-col overflow-y-auto
         z-40
       `}>
-        {/* 予定セクション - モバイルでは予定タブでのみ表示 */}
+        {/* カレンダーセクション - モバイルでは予定タブでのみ表示 */}
         <div className={`mb-6 ${mobileTab === "schedule" ? "block" : "hidden"} lg:block`}>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-lg">📅</span>
-            <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
-              予定
+          {/* 月タイトル */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-[var(--foreground)]">
+              {calendarDate.getMonth() + 1}月
             </h2>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() - 1, 1))}
+                className="p-2 rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--muted)]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setCalendarDate(new Date())}
+                className="px-2 py-1 text-xs rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--muted)]"
+              >
+                今日
+              </button>
+              <button
+                onClick={() => setCalendarDate(new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 1))}
+                className="p-2 rounded-lg hover:bg-[var(--background)] transition-colors text-[var(--muted)]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          {/* 日/週/月 切り替えタブ */}
-          <div className="flex gap-1 mb-3 p-1 rounded-lg bg-[var(--background)]">
-            {[
-              { key: "day", label: "今日" },
-              { key: "week", label: "週" },
-              { key: "month", label: "月" },
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setScheduleView(tab.key as "day" | "week" | "month")}
-                className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  scheduleView === tab.key
-                    ? "bg-[var(--primary)] text-white"
-                    : "text-[var(--muted)] hover:text-[var(--foreground)]"
+          {/* 曜日ヘッダー */}
+          <div className="grid grid-cols-7 mb-2">
+            {WEEKDAYS.map((day, index) => (
+              <div
+                key={day}
+                className={`text-center text-xs font-medium py-1 ${
+                  index === 0 ? "text-red-400" : index === 6 ? "text-[var(--muted)]" : "text-[var(--muted)]"
                 }`}
               >
-                {tab.label}
-              </button>
+                {day}
+              </div>
             ))}
           </div>
 
-          {/* 予定リスト */}
-          <div className="space-y-2">
-            {scheduleView === "day" &&
-              SCHEDULE.day.map((item) => (
+          {/* カレンダーグリッド */}
+          <div className="grid grid-cols-7 gap-px bg-[var(--card-border)] rounded-xl overflow-hidden">
+            {getCalendarDays(calendarDate.getFullYear(), calendarDate.getMonth()).map((day, index) => {
+              const today = new Date();
+              const isToday = day === today.getDate() &&
+                calendarDate.getMonth() === today.getMonth() &&
+                calendarDate.getFullYear() === today.getFullYear();
+              const dateKey = day ? `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
+              const events = dateKey ? CALENDAR_EVENTS[dateKey] : null;
+              const dayOfWeek = index % 7;
+
+              return (
                 <div
-                  key={item.id}
-                  className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
+                  key={index}
+                  className={`bg-[var(--card-bg)] min-h-[70px] lg:min-h-[80px] p-1 ${
+                    day ? "cursor-pointer hover:bg-[var(--background)]" : ""
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-xs text-[var(--primary)] font-medium w-12">
-                      {item.time}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{item.title}</div>
-                      <div className="text-xs text-[var(--muted)]">{item.app}</div>
-                    </div>
-                  </div>
+                  {day && (
+                    <>
+                      <div className={`text-sm font-medium mb-1 w-7 h-7 flex items-center justify-center ${
+                        isToday
+                          ? "bg-red-500 text-white rounded-full"
+                          : dayOfWeek === 0
+                          ? "text-red-400"
+                          : dayOfWeek === 6
+                          ? "text-[var(--muted)]"
+                          : "text-[var(--foreground)]"
+                      }`}>
+                        {day}
+                      </div>
+                      {events && events.map((event, eventIndex) => (
+                        <div
+                          key={eventIndex}
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full truncate mb-0.5 ${
+                            event.color === "purple"
+                              ? "bg-purple-100 text-purple-700 lg:bg-purple-500/20 lg:text-purple-400"
+                              : event.color === "gray"
+                              ? "bg-gray-100 text-gray-700 lg:bg-gray-500/20 lg:text-gray-400"
+                              : event.color === "blue"
+                              ? "bg-blue-100 text-blue-700 lg:bg-blue-500/20 lg:text-blue-400"
+                              : event.color === "green"
+                              ? "bg-green-100 text-green-700 lg:bg-green-500/20 lg:text-green-400"
+                              : "bg-red-100 text-red-700 lg:bg-red-500/20 lg:text-red-400"
+                          }`}
+                        >
+                          {event.icon} {event.title}
+                        </div>
+                      ))}
+                    </>
+                  )}
                 </div>
-              ))}
-            {scheduleView === "week" &&
-              SCHEDULE.week.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-xs text-[var(--primary)] font-medium w-12">
-                      {item.day}曜
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{item.title}</div>
-                      <div className="text-xs text-[var(--muted)]">{item.app}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            {scheduleView === "month" &&
-              SCHEDULE.month.map((item) => (
-                <div
-                  key={item.id}
-                  className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="text-xs text-[var(--primary)] font-medium w-12">
-                      {item.date}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{item.title}</div>
-                      <div className="text-xs text-[var(--muted)]">{item.app}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              );
+            })}
           </div>
         </div>
 
