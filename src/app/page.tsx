@@ -186,6 +186,7 @@ const CAPABILITIES = [
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
 type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode";
 type ChatMode = "text" | "voice";
+type NotificationMode = "manual" | "auto";
 
 export default function Home() {
   const [input, setInput] = useState("");
@@ -208,6 +209,8 @@ export default function Home() {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationError, setImageGenerationError] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<ChatMode>("text");
+  const [notificationMode, setNotificationMode] = useState<NotificationMode>("manual");
+  const [isAutoProcessing, setIsAutoProcessing] = useState(false);
   const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -255,22 +258,30 @@ export default function Home() {
   // Realtime API接続関数
   const connectToRealtimeAPI = async () => {
     try {
+      console.log("Connecting to Realtime API...");
+
       // セッショントークンを取得
       const response = await fetch("/api/realtime", {
         method: "POST",
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to get session token");
+        const errorData = await response.json();
+        console.error("Session token error:", errorData);
+        throw new Error(errorData.error || "Failed to get session token");
       }
 
-      const { client_secret } = await response.json();
+      const data = await response.json();
+      console.log("Session token received:", data);
+
+      if (!data.client_secret?.value) {
+        throw new Error("Invalid client_secret received");
+      }
 
       // WebSocket接続
       const ws = new WebSocket(
         `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`,
-        ["realtime", `openai-insecure-api-key.${client_secret.value}`]
+        ["realtime", `openai-insecure-api-key.${data.client_secret.value}`]
       );
 
       ws.onopen = () => {
@@ -280,8 +291,8 @@ export default function Home() {
       };
 
       ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        handleRealtimeMessage(data);
+        const messageData = JSON.parse(event.data);
+        handleRealtimeMessage(messageData);
       };
 
       ws.onerror = (error) => {
@@ -289,8 +300,8 @@ export default function Home() {
         setIsVoiceConnected(false);
       };
 
-      ws.onclose = () => {
-        console.log("WebSocket closed");
+      ws.onclose = (event) => {
+        console.log("WebSocket closed:", event.code, event.reason);
         setIsVoiceConnected(false);
         setIsListening(false);
         stopAudioCapture();
@@ -300,6 +311,7 @@ export default function Home() {
     } catch (error) {
       console.error("Connection error:", error);
       setIsVoiceConnected(false);
+      alert(`接続エラー: ${error instanceof Error ? error.message : "不明なエラー"}`);
     }
   };
 
@@ -519,6 +531,54 @@ export default function Home() {
     }, 300);
   };
 
+  // Auto モード: AIが自動で判断
+  const handleAutoDecision = async () => {
+    if (!currentCard || isAutoProcessing) return;
+
+    setIsAutoProcessing(true);
+
+    const prompt = `あなたはユーザーのパーソナルアシスタントです。以下の通知内容を見て、ユーザーに代わって「承諾」すべきか「お断り」すべきかを判断してください。
+
+通知元: ${currentCard.app}
+要約: ${currentCard.summary}
+詳細: ${currentCard.content}
+
+以下の基準で判断してください：
+- 仕事関連のミーティング変更 → 通常は承諾
+- 見積もり依頼など業務連絡 → 通常は承諾
+- コードレビュー依頼 → 通常は承諾
+- プライベートな飲み会の誘い → ユーザーの状況による（今回は承諾）
+
+回答は必ず「YES」または「NO」の一言だけで答えてください。`;
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: prompt }],
+          model: selectedModel.id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.response) {
+        const decision = data.response.trim().toUpperCase();
+        const isYes = decision.includes("YES");
+
+        // 少し待ってからスワイプアニメーションを実行
+        setTimeout(() => {
+          handleSwipe(isYes ? "right" : "left");
+        }, 500);
+      }
+    } catch (error) {
+      console.error("Auto decision error:", error);
+    } finally {
+      setIsAutoProcessing(false);
+    }
+  };
+
   const handleRefreshSuggestion = async (type: "accept" | "decline") => {
     if (!currentCard || isRefreshing) return;
 
@@ -677,6 +737,16 @@ export default function Home() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentCard, processedCards]);
+
+  // Autoモードで未処理カードがあるとき自動判断を実行
+  useEffect(() => {
+    if (notificationMode === "auto" && currentCard && !isAutoProcessing && !swipeDirection) {
+      const timer = setTimeout(() => {
+        handleAutoDecision();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [notificationMode, currentCard, isAutoProcessing, swipeDirection, processedCards]);
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
@@ -971,9 +1041,33 @@ export default function Home() {
             <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
               今起きていること
             </h2>
-            <span className="text-xs text-[var(--muted)] ml-auto">
-              {LIVE_CONTEXT.length - processedCards.length} 件
-            </span>
+            <div className="flex items-center gap-2 ml-auto">
+              <span className="text-xs text-[var(--muted)]">
+                {LIVE_CONTEXT.length - processedCards.length} 件
+              </span>
+              <div className="flex rounded-lg overflow-hidden border border-[var(--card-border)]">
+                <button
+                  onClick={() => setNotificationMode("manual")}
+                  className={`px-2 py-1 text-xs font-medium transition-colors ${
+                    notificationMode === "manual"
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-[var(--background)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  Manual
+                </button>
+                <button
+                  onClick={() => setNotificationMode("auto")}
+                  className={`px-2 py-1 text-xs font-medium transition-colors ${
+                    notificationMode === "auto"
+                      ? "bg-[var(--primary)] text-white"
+                      : "bg-[var(--background)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                  }`}
+                >
+                  Auto
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -993,10 +1087,16 @@ export default function Home() {
               <div className="p-4 border-b border-[var(--card-border)]">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{currentCard.icon}</span>
-                  <div>
+                  <div className="flex-1">
                     <div className="font-medium">{currentCard.app}</div>
                     <div className="text-xs text-[var(--muted)]">{currentCard.time}</div>
                   </div>
+                  {notificationMode === "auto" && isAutoProcessing && (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/30">
+                      <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse" />
+                      <span className="text-xs text-[var(--primary)]">AI判断中...</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
