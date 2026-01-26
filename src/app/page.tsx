@@ -13,11 +13,76 @@ const LLM_MODELS = [
   { id: "gemini-3-flash", name: "Gemini 3 Flash", provider: "Google" },
 ];
 
+// ユーザープロファイル（業務時間、ルール、好み）
+const USER_PROFILE = {
+  name: "ユーザー",
+  workHours: { start: "09:00", end: "18:00" },
+  workDays: [1, 2, 3, 4, 5], // 月〜金
+  rules: [
+    "業務時間外の仕事依頼は基本的に断る",
+    "上司や重要クライアントからの依頼は優先する",
+    "金曜夜は家族との時間を大切にしている",
+    "コードレビューは24時間以内に対応する方針",
+  ],
+  preferences: {
+    socialEvents: "moderate", // "love" | "moderate" | "avoid"
+    workStyle: "balanced", // "workaholic" | "balanced" | "relaxed"
+  },
+  currentStatus: {
+    busyLevel: "normal", // "free" | "normal" | "busy" | "overloaded"
+    mood: "good", // "great" | "good" | "tired" | "stressed"
+  },
+};
+
+// 人間関係マップ
+const RELATIONSHIPS: Record<string, {
+  name: string;
+  relationship: "boss" | "colleague" | "client" | "friend" | "family" | "acquaintance";
+  priority: "high" | "medium" | "low";
+  notes?: string;
+}> = {
+  "田中": {
+    name: "田中さん",
+    relationship: "colleague",
+    priority: "high",
+    notes: "同じチームのリーダー。信頼できる先輩。",
+  },
+  "佐藤": {
+    name: "佐藤様",
+    relationship: "client",
+    priority: "high",
+    notes: "重要クライアント。丁寧な対応が必要。",
+  },
+  "山本": {
+    name: "山本さん",
+    relationship: "colleague",
+    priority: "medium",
+    notes: "エンジニアチームのメンバー。",
+  },
+  "鈴木": {
+    name: "鈴木さん",
+    relationship: "friend",
+    priority: "medium",
+    notes: "会社の同期。よく飲みに行く仲。",
+  },
+};
+
+// 判断履歴の型
+type DecisionHistory = {
+  id: string;
+  app: string;
+  summary: string;
+  decision: "yes" | "no";
+  reason: string;
+  timestamp: Date;
+};
+
 const LIVE_CONTEXT = [
   {
     id: "1",
     app: "Slack",
     icon: "💬",
+    sender: "田中",
     summary: "田中さんからミーティング時間変更の相談",
     content: "明日のミーティングを15時に変更したいとのこと",
     suggestedAction: "承知しました！15時に変更しておきますね。カレンダーも更新しておきます。",
@@ -28,6 +93,7 @@ const LIVE_CONTEXT = [
     id: "2",
     app: "Gmail",
     icon: "✉️",
+    sender: "佐藤",
     summary: "佐藤様から見積もり依頼",
     content: "新規プロジェクトの見積もりを依頼されています",
     suggestedAction: "佐藤様、お問い合わせありがとうございます。見積もりの件、承りました。詳細を確認の上、本日中にお送りいたします。",
@@ -38,6 +104,7 @@ const LIVE_CONTEXT = [
     id: "3",
     app: "GitHub",
     icon: "🐙",
+    sender: "山本",
     summary: "PR #142 のレビュー依頼",
     content: "山本さんからコードレビューを依頼されています",
     suggestedAction: "レビューリクエストを確認しました。本日中にレビューを完了させます。",
@@ -48,6 +115,7 @@ const LIVE_CONTEXT = [
     id: "4",
     app: "LINE",
     icon: "📱",
+    sender: "鈴木",
     summary: "鈴木さんから飲み会のお誘い",
     content: "今週金曜日に飲み会どうですか？とのこと",
     suggestedAction: "いいですね！金曜日、参加します！場所と時間が決まったら教えてください。",
@@ -211,6 +279,7 @@ export default function Home() {
   const [chatMode, setChatMode] = useState<ChatMode>("text");
   const [notificationMode, setNotificationMode] = useState<NotificationMode>("manual");
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
+  const [decisionHistory, setDecisionHistory] = useState<DecisionHistory[]>([]);
   const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -537,19 +606,70 @@ export default function Home() {
 
     setIsAutoProcessing(true);
 
-    const prompt = `あなたはユーザーのパーソナルアシスタントです。以下の通知内容を見て、ユーザーに代わって「承諾」すべきか「お断り」すべきかを判断してください。
+    // 送信者の関係性を取得
+    const senderKey = 'sender' in currentCard ? (currentCard as typeof currentCard & { sender?: string }).sender : undefined;
+    const senderRelationship = senderKey ? RELATIONSHIPS[senderKey] : null;
 
-通知元: ${currentCard.app}
-要約: ${currentCard.summary}
-詳細: ${currentCard.content}
+    // 今日の日付とスケジュールを取得
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const todaySchedule = DAILY_SCHEDULE[todayKey] || [];
+    const todayEvents = CALENDAR_EVENTS[todayKey] || [];
 
-以下の基準で判断してください：
-- 仕事関連のミーティング変更 → 通常は承諾
-- 見積もり依頼など業務連絡 → 通常は承諾
-- コードレビュー依頼 → 通常は承諾
-- プライベートな飲み会の誘い → ユーザーの状況による（今回は承諾）
+    // 現在時刻が業務時間内かチェック
+    const currentHour = today.getHours();
+    const workStart = parseInt(USER_PROFILE.workHours.start.split(':')[0]);
+    const workEnd = parseInt(USER_PROFILE.workHours.end.split(':')[0]);
+    const isWorkHours = currentHour >= workStart && currentHour < workEnd;
+    const isWorkDay = USER_PROFILE.workDays.includes(today.getDay());
 
-回答は必ず「YES」または「NO」の一言だけで答えてください。`;
+    // 過去の判断履歴をフォーマット
+    const recentHistory = decisionHistory.slice(-5).map(h =>
+      `- ${h.app}「${h.summary}」→ ${h.decision.toUpperCase()} (理由: ${h.reason})`
+    ).join('\n');
+
+    const prompt = `あなたはユーザーのパーソナルアシスタントです。以下のユーザー情報と通知内容を総合的に判断して、「承諾」すべきか「お断り」すべきかを決定してください。
+
+## ユーザープロファイル
+- 名前: ${USER_PROFILE.name}
+- 業務時間: ${USER_PROFILE.workHours.start} 〜 ${USER_PROFILE.workHours.end}
+- 現在の状態: ${USER_PROFILE.currentStatus.busyLevel === 'busy' ? '忙しい' : USER_PROFILE.currentStatus.busyLevel === 'overloaded' ? '非常に忙しい' : '通常'}
+- 気分: ${USER_PROFILE.currentStatus.mood === 'tired' ? '疲れている' : USER_PROFILE.currentStatus.mood === 'stressed' ? 'ストレスを感じている' : '良好'}
+- 社交イベントへの姿勢: ${USER_PROFILE.preferences.socialEvents === 'love' ? '積極的' : USER_PROFILE.preferences.socialEvents === 'avoid' ? '控えめ' : '普通'}
+
+## ユーザーのルール・方針
+${USER_PROFILE.rules.map(r => `- ${r}`).join('\n')}
+
+## 現在の状況
+- 現在時刻: ${today.toLocaleTimeString('ja-JP')}
+- 今日は: ${isWorkDay ? '業務日' : '休日'}
+- 業務時間${isWorkHours ? '内' : '外'}
+
+## 今日のスケジュール
+${todaySchedule.length > 0 ? todaySchedule.map(s => `- ${s.time} ${s.title}`).join('\n') : '予定なし'}
+
+## 今日のイベント
+${todayEvents.length > 0 ? todayEvents.map(e => `- ${e.title}`).join('\n') : 'イベントなし'}
+
+## 送信者との関係
+${senderRelationship ? `
+- 名前: ${senderRelationship.name}
+- 関係: ${senderRelationship.relationship === 'boss' ? '上司' : senderRelationship.relationship === 'client' ? 'クライアント' : senderRelationship.relationship === 'colleague' ? '同僚' : senderRelationship.relationship === 'friend' ? '友人' : senderRelationship.relationship === 'family' ? '家族' : '知人'}
+- 優先度: ${senderRelationship.priority === 'high' ? '高' : senderRelationship.priority === 'medium' ? '中' : '低'}
+${senderRelationship.notes ? `- メモ: ${senderRelationship.notes}` : ''}
+` : '（送信者情報なし）'}
+
+## 過去の判断履歴
+${recentHistory || '（履歴なし）'}
+
+## 今回の通知
+- 通知元アプリ: ${currentCard.app}
+- 要約: ${currentCard.summary}
+- 詳細: ${currentCard.content}
+
+上記の情報を総合的に判断して、ユーザーに代わって返答してください。
+回答は以下のJSON形式で答えてください：
+{"decision": "YES" または "NO", "reason": "判断理由を簡潔に"}`;
 
     try {
       const response = await fetch("/api/chat", {
@@ -564,8 +684,37 @@ export default function Home() {
       const data = await response.json();
 
       if (response.ok && data.response) {
-        const decision = data.response.trim().toUpperCase();
-        const isYes = decision.includes("YES");
+        let isYes = false;
+        let reason = "";
+
+        try {
+          // JSONをパース
+          const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            isYes = parsed.decision?.toUpperCase() === "YES";
+            reason = parsed.reason || "";
+          } else {
+            // フォールバック: 単純な文字列判定
+            isYes = data.response.toUpperCase().includes("YES");
+            reason = "自動判定";
+          }
+        } catch {
+          isYes = data.response.toUpperCase().includes("YES");
+          reason = "自動判定";
+        }
+
+        // 判断履歴を保存
+        setDecisionHistory(prev => [...prev, {
+          id: currentCard.id,
+          app: currentCard.app,
+          summary: currentCard.summary,
+          decision: isYes ? "yes" : "no",
+          reason: reason,
+          timestamp: new Date(),
+        }]);
+
+        console.log(`Auto Decision: ${isYes ? "YES" : "NO"} - ${reason}`);
 
         // 少し待ってからスワイプアニメーションを実行
         setTimeout(() => {
