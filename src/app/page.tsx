@@ -1731,23 +1731,6 @@ ${recentHistory || '（履歴なし）'}
               </svg>
             </button>
 
-            {/* 自分のプロフィール */}
-            <button
-              onClick={() => setProfileSection("self-profile")}
-              className="w-full mb-4 p-4 rounded-2xl bg-[var(--background)] flex items-center gap-4 hover:bg-[var(--card-border)] transition-colors"
-            >
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--primary)] to-amber-600 flex items-center justify-center text-2xl text-white shadow-lg">
-                {SELF_PROFILE.avatar}
-              </div>
-              <div className="flex-1 text-left">
-                <div className="font-bold text-[var(--foreground)]">{SELF_PROFILE.name}</div>
-                <div className="text-xs text-[var(--muted)]">自分のプロフィールを見る</div>
-              </div>
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-            </button>
-
             {/* メニュー */}
             <div className="space-y-2">
               <button
