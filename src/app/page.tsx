@@ -1714,16 +1714,22 @@ ${recentHistory || '（履歴なし）'}
       `}>
         {profileSection === "main" && (
           <>
-            {/* プロフィールヘッダー */}
-            <div className="flex items-center gap-4 mb-6 p-4 rounded-2xl bg-[var(--background)]">
+            {/* プロフィールヘッダー - クリックで自分の詳細情報を表示 */}
+            <button
+              onClick={() => setProfileSection("self-profile")}
+              className="w-full flex items-center gap-4 mb-6 p-4 rounded-2xl bg-[var(--background)] hover:bg-[var(--card-border)] transition-colors text-left"
+            >
               <div className="w-16 h-16 rounded-full bg-[var(--primary)] flex items-center justify-center text-2xl text-white">
                 👤
               </div>
-              <div>
+              <div className="flex-1">
                 <h2 className="text-lg font-bold text-[var(--foreground)]">ユーザー</h2>
                 <p className="text-sm text-[var(--muted)]">user@example.com</p>
               </div>
-            </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
 
             {/* 自分のプロフィール */}
             <button

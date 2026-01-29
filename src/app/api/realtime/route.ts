@@ -43,10 +43,10 @@ export async function POST() {
     }
 
     const data = await response.json();
+    console.log("OpenAI Realtime session created:", JSON.stringify(data, null, 2));
 
     return NextResponse.json({
       client_secret: data.client_secret,
-      expires_at: data.expires_at,
     });
   } catch (error) {
     console.error("Realtime API Error:", error);
