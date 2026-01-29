@@ -99,6 +99,14 @@ const SELF_PROFILE = {
     address: "東京都渋谷区",
     emergencyContact: { name: "母", phone: "090-9876-5432" },
   },
+  favorites: {
+    manga: ["ワンピース", "呪術廻戦", "チェンソーマン"],
+    entertainment: ["ディズニー", "USJ", "映画鑑賞"],
+    food: ["ラーメン", "寿司", "焼肉"],
+    music: ["YOASOBI", "Vaundy", "米津玄師"],
+    sports: ["サッカー", "バスケ"],
+    hobbies: ["ゲーム", "YouTube", "プログラミング"],
+  },
   lifestyle: {
     exercise: "週3回（ジム・ランニング）",
     sleep: "平均7時間",
@@ -2076,6 +2084,39 @@ ${recentHistory || '（履歴なし）'}
                   <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/20 text-[var(--primary)]">{SELF_PROFILE.basicInfo.gender}</span>
                   <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">{SELF_PROFILE.basicInfo.bloodType}</span>
                 </div>
+              </div>
+            </div>
+
+            {/* 好きなもの */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>⭐</span> 好きなもの
+              </h3>
+              <div className="space-y-2">
+                {[
+                  { label: "マンガ・アニメ", icon: "📚", items: SELF_PROFILE.favorites.manga },
+                  { label: "エンタメ・お出かけ", icon: "🎢", items: SELF_PROFILE.favorites.entertainment },
+                  { label: "食べ物", icon: "🍜", items: SELF_PROFILE.favorites.food },
+                  { label: "音楽", icon: "🎵", items: SELF_PROFILE.favorites.music },
+                  { label: "スポーツ", icon: "⚽", items: SELF_PROFILE.favorites.sports },
+                  { label: "趣味", icon: "🎮", items: SELF_PROFILE.favorites.hobbies },
+                ].map((category) => (
+                  <div key={category.label} className="p-3 rounded-xl bg-[var(--background)]">
+                    <div className="text-sm text-[var(--foreground)] mb-2 flex items-center gap-1.5">
+                      <span>{category.icon}</span>{category.label}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {category.items.map((item) => (
+                        <span
+                          key={item}
+                          className="text-xs px-2.5 py-1 rounded-full bg-[var(--primary)]/15 text-[var(--primary)] border border-[var(--primary)]/20"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
