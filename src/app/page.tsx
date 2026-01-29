@@ -106,6 +106,40 @@ const SELF_PROFILE = {
     smoking: "なし",
     alcohol: "たまに飲む",
   },
+  personality: {
+    type: "慎重派・計画型",
+    strengths: ["論理的思考", "継続力", "傾聴力"],
+    weaknesses: ["優柔不断になりがち", "頼みを断れない"],
+    values: ["誠実さ", "成長", "家族との時間"],
+    decisionStyle: "情報を集めてから判断したい",
+  },
+  hobbies: {
+    interests: ["プログラミング", "読書", "映画鑑賞", "ランニング"],
+    favoriteGenres: { music: "J-POP・洋楽", movie: "SF・アクション", book: "ビジネス・技術書" },
+    recentlyInto: "AIアプリ開発",
+  },
+  relationships: {
+    family: [
+      { relation: "父", name: "父", note: "会社員" },
+      { relation: "母", name: "母", note: "パート勤務" },
+    ],
+    closeFriends: [
+      { name: "田中", context: "職場の同僚・よく相談する" },
+      { name: "佐藤", context: "大学時代の友人" },
+    ],
+    importantPeople: ["家族", "田中", "佐藤"],
+  },
+  goals: {
+    shortTerm: [
+      { goal: "AIアプリのプロトタイプ完成", deadline: "2025年3月" },
+      { goal: "TOEIC 800点", deadline: "2025年6月" },
+    ],
+    longTerm: [
+      { goal: "自分のプロダクトをリリースする", deadline: "" },
+      { goal: "エンジニアとして独立する", deadline: "" },
+    ],
+    currentFocus: "AIを活用したアプリ開発スキルの向上",
+  },
 };
 
 // 判断履歴の型
@@ -2205,6 +2239,137 @@ ${recentHistory || '（履歴なし）'}
                   <div className="text-sm text-[var(--muted)]">
                     {USER_PROFILE.currentStatus.busyLevel === "free" ? "余裕あり" : USER_PROFILE.currentStatus.busyLevel === "normal" ? "通常" : USER_PROFILE.currentStatus.busyLevel === "busy" ? "忙しい" : "超多忙"}
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 性格・価値観 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>🧠</span> 性格・価値観
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">タイプ</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.personality.type}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">強み</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SELF_PROFILE.personality.strengths.map((s, i) => (
+                      <span key={i} className="text-xs px-2 py-1 rounded-full bg-green-500/15 text-green-600 lg:text-green-400">{s}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">弱み</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SELF_PROFILE.personality.weaknesses.map((w, i) => (
+                      <span key={i} className="text-xs px-2 py-1 rounded-full bg-amber-500/15 text-amber-600 lg:text-amber-400">{w}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">大切にしていること</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SELF_PROFILE.personality.values.map((v, i) => (
+                      <span key={i} className="text-xs px-2 py-1 rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">{v}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">判断スタイル</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.personality.decisionStyle}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 趣味・関心 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>🎯</span> 趣味・関心
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">興味があること</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SELF_PROFILE.hobbies.interests.map((h, i) => (
+                      <span key={i} className="text-xs px-2 py-1 rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">{h}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">音楽</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.hobbies.favoriteGenres.music}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">映画</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.hobbies.favoriteGenres.movie}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">本</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.hobbies.favoriteGenres.book}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">最近ハマっていること</div>
+                  <div className="text-sm font-bold text-[var(--primary)]">{SELF_PROFILE.hobbies.recentlyInto}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 人間関係 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>👥</span> 人間関係
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">家族</div>
+                  {SELF_PROFILE.relationships.family.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between py-1">
+                      <div className="text-sm text-[var(--muted)]">{f.relation}</div>
+                      <div className="text-sm text-[var(--muted)]">{f.note}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">親しい人</div>
+                  {SELF_PROFILE.relationships.closeFriends.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between py-1">
+                      <div className="text-sm text-[var(--muted)]">{f.name}</div>
+                      <div className="text-sm text-[var(--muted)]">{f.context}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 目標・やりたいこと */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>🚀</span> 目標・やりたいこと
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">今のフォーカス</div>
+                  <div className="text-sm font-bold text-[var(--primary)]">{SELF_PROFILE.goals.currentFocus}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">短期目標</div>
+                  {SELF_PROFILE.goals.shortTerm.map((g, i) => (
+                    <div key={i} className="flex items-center justify-between py-1">
+                      <div className="text-sm text-[var(--muted)]">{g.goal}</div>
+                      {g.deadline && <div className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 lg:text-amber-400">{g.deadline}</div>}
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-2">長期目標</div>
+                  {SELF_PROFILE.goals.longTerm.map((g, i) => (
+                    <div key={i} className="py-1">
+                      <div className="text-sm text-[var(--muted)]">{g.goal}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
