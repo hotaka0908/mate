@@ -67,6 +67,47 @@ const RELATIONSHIPS: Record<string, {
   },
 };
 
+// 自分のプロフィール情報
+const SELF_PROFILE = {
+  name: "穂高",
+  avatar: "🧑",
+  basicInfo: {
+    fullName: "穂高",
+    dateOfBirth: "2009年8月20日",
+    age: 16,
+    gender: "男性",
+    bloodType: "O型",
+  },
+  bodyInfo: {
+    height: "170cm",
+    weight: "60kg",
+    shoeSize: "27.0cm",
+    eyesight: { left: "1.2", right: "1.0" },
+  },
+  healthInfo: {
+    bloodPressure: { systolic: 115, diastolic: 72 },
+    restingHeartRate: 68,
+    medications: [
+      { name: "なし", dosage: "", timing: "" },
+    ],
+    allergies: ["なし"],
+    chronicConditions: ["なし"],
+  },
+  contactInfo: {
+    email: "user@example.com",
+    phone: "090-1234-5678",
+    address: "東京都渋谷区",
+    emergencyContact: { name: "母", phone: "090-9876-5432" },
+  },
+  lifestyle: {
+    exercise: "週3回（ジム・ランニング）",
+    sleep: "平均7時間",
+    diet: "バランス型",
+    smoking: "なし",
+    alcohol: "たまに飲む",
+  },
+};
+
 // 判断履歴の型
 type DecisionHistory = {
   id: string;
@@ -252,7 +293,7 @@ const CAPABILITIES = [
 ];
 
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
-type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode";
+type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode" | "self-profile";
 type ChatMode = "text" | "voice";
 type NotificationMode = "manual" | "auto";
 
@@ -1684,6 +1725,23 @@ ${recentHistory || '（履歴なし）'}
               </div>
             </div>
 
+            {/* 自分のプロフィール */}
+            <button
+              onClick={() => setProfileSection("self-profile")}
+              className="w-full mb-4 p-4 rounded-2xl bg-[var(--background)] flex items-center gap-4 hover:bg-[var(--card-border)] transition-colors"
+            >
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[var(--primary)] to-amber-600 flex items-center justify-center text-2xl text-white shadow-lg">
+                {SELF_PROFILE.avatar}
+              </div>
+              <div className="flex-1 text-left">
+                <div className="font-bold text-[var(--foreground)]">{SELF_PROFILE.name}</div>
+                <div className="text-xs text-[var(--muted)]">自分のプロフィールを見る</div>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+
             {/* メニュー */}
             <div className="space-y-2">
               <button
@@ -1991,6 +2049,151 @@ ${recentHistory || '（履歴なし）'}
                 </div>
               </div>
             )}
+          </>
+        )}
+        {profileSection === "self-profile" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            {/* プロフィールヘッダー */}
+            <div className="flex items-center gap-4 mb-6 p-5 rounded-2xl bg-gradient-to-r from-[var(--primary)]/20 to-amber-600/10 border border-[var(--primary)]/30">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary)] to-amber-600 flex items-center justify-center text-3xl text-white shadow-lg">
+                {SELF_PROFILE.avatar}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[var(--foreground)]">{SELF_PROFILE.basicInfo.fullName}</h2>
+                <p className="text-sm text-[var(--muted)]">{SELF_PROFILE.basicInfo.dateOfBirth}生まれ（{SELF_PROFILE.basicInfo.age}歳）</p>
+                <div className="flex gap-2 mt-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/20 text-[var(--primary)]">{SELF_PROFILE.basicInfo.gender}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">{SELF_PROFILE.basicInfo.bloodType}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 身体情報 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>📏</span> 身体情報
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-xs text-[var(--muted)]">身長</div>
+                  <div className="text-lg font-bold text-[var(--foreground)]">{SELF_PROFILE.bodyInfo.height}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-xs text-[var(--muted)]">体重</div>
+                  <div className="text-lg font-bold text-[var(--foreground)]">{SELF_PROFILE.bodyInfo.weight}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-xs text-[var(--muted)]">靴のサイズ</div>
+                  <div className="text-lg font-bold text-[var(--foreground)]">{SELF_PROFILE.bodyInfo.shoeSize}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-xs text-[var(--muted)]">視力</div>
+                  <div className="text-lg font-bold text-[var(--foreground)]">
+                    <span className="text-xs text-[var(--muted)]">左</span>{SELF_PROFILE.bodyInfo.eyesight.left} <span className="text-xs text-[var(--muted)]">右</span>{SELF_PROFILE.bodyInfo.eyesight.right}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 健康情報 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>❤️</span> 健康情報
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">血圧</div>
+                  <div className="text-sm font-bold text-[var(--foreground)]">
+                    {SELF_PROFILE.healthInfo.bloodPressure.systolic}/{SELF_PROFILE.healthInfo.bloodPressure.diastolic} mmHg
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">安静時心拍数</div>
+                  <div className="text-sm font-bold text-[var(--foreground)]">{SELF_PROFILE.healthInfo.restingHeartRate} bpm</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-1">服用中の薬</div>
+                  {SELF_PROFILE.healthInfo.medications.map((med, i) => (
+                    <div key={i} className="text-sm text-[var(--muted)]">
+                      {med.name}{med.dosage && ` - ${med.dosage}`}{med.timing && `（${med.timing}）`}
+                    </div>
+                  ))}
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">アレルギー</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.healthInfo.allergies.join("、")}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">持病</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.healthInfo.chronicConditions.join("、")}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 連絡先情報 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>📞</span> 連絡先
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">メール</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.contactInfo.email}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">電話番号</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.contactInfo.phone}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">住所</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.contactInfo.address}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)]">
+                  <div className="text-sm text-[var(--foreground)] mb-1">緊急連絡先</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.contactInfo.emergencyContact.name}：{SELF_PROFILE.contactInfo.emergencyContact.phone}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 生活習慣 */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>🏃</span> 生活習慣
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">運動</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.lifestyle.exercise}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">睡眠</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.lifestyle.sleep}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">食生活</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.lifestyle.diet}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">喫煙</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.lifestyle.smoking}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">飲酒</div>
+                  <div className="text-sm text-[var(--muted)]">{SELF_PROFILE.lifestyle.alcohol}</div>
+                </div>
+              </div>
+            </div>
           </>
         )}
       </aside>
