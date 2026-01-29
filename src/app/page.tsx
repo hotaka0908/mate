@@ -2200,6 +2200,31 @@ ${recentHistory || '（履歴なし）'}
                 </div>
               </div>
             </div>
+
+            {/* ワークスタイル */}
+            <div className="mb-4">
+              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
+                <span>💼</span> ワークスタイル
+              </h3>
+              <div className="space-y-2">
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">業務時間</div>
+                  <div className="text-sm font-bold text-[var(--primary)]">{USER_PROFILE.workHours.start} 〜 {USER_PROFILE.workHours.end}</div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">コンディション</div>
+                  <div className="text-sm text-[var(--muted)]">
+                    {USER_PROFILE.currentStatus.mood === "great" ? "最高" : USER_PROFILE.currentStatus.mood === "good" ? "良好" : USER_PROFILE.currentStatus.mood === "tired" ? "疲れ気味" : "ストレスあり"}
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
+                  <div className="text-sm text-[var(--foreground)]">忙しさ</div>
+                  <div className="text-sm text-[var(--muted)]">
+                    {USER_PROFILE.currentStatus.busyLevel === "free" ? "余裕あり" : USER_PROFILE.currentStatus.busyLevel === "normal" ? "通常" : USER_PROFILE.currentStatus.busyLevel === "busy" ? "忙しい" : "超多忙"}
+                  </div>
+                </div>
+              </div>
+            </div>
           </>
         )}
       </aside>
