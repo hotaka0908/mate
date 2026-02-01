@@ -723,6 +723,7 @@ export default function Home() {
   const [processedCards, setProcessedCards] = useState<string[]>([]);
   const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selectedScheduleItem, setSelectedScheduleItem] = useState<number | null>(null);
   const [jumpingChar, setJumpingChar] = useState<string | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -1647,7 +1648,7 @@ ${recentHistory || '（履歴なし）'}
             <>
               {/* 戻るボタン */}
               <button
-                onClick={() => setSelectedDate(null)}
+                onClick={() => { setSelectedDate(null); setSelectedScheduleItem(null); }}
                 className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -1743,24 +1744,79 @@ ${recentHistory || '（履歴なし）'}
                 <div className="space-y-2">
                   {(dailySchedule[selectedDate] || [
                     { time: "09:00", title: "予定なし", app: "" }
-                  ]).map((item, index) => (
-                    <div
-                      key={index}
-                      className="p-3 rounded-xl border border-[var(--card-border)] bg-[var(--background)]"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="text-sm text-[var(--primary)] font-medium w-14">
-                          {item.time}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-[var(--foreground)]">{item.title}</div>
-                          {item.app && (
-                            <div className="text-xs text-[var(--muted)]">{item.app}</div>
+                  ]).map((item, index) => {
+                    const isSelected = selectedScheduleItem === index;
+                    const endHour = parseInt(item.time.split(":")[0]) + 1;
+                    const endTime = `${String(endHour).padStart(2, "0")}:${item.time.split(":")[1]}`;
+                    return (
+                    <div key={index}>
+                      <div
+                        onClick={() => {
+                          if (item.title === "予定なし") return;
+                          setSelectedScheduleItem(isSelected ? null : index);
+                        }}
+                        className={`p-3 rounded-xl border transition-all ${
+                          item.title === "予定なし"
+                            ? "border-[var(--card-border)] bg-[var(--background)]"
+                            : isSelected
+                            ? "border-[var(--primary)] bg-[var(--primary)]/5 cursor-pointer"
+                            : "border-[var(--card-border)] bg-[var(--background)] cursor-pointer hover:border-[var(--primary)]/50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="text-sm text-[var(--primary)] font-medium w-14">
+                            {item.time}
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-[var(--foreground)]">{item.title}</div>
+                            {item.app && (
+                              <div className="text-xs text-[var(--muted)]">{item.app}</div>
+                            )}
+                          </div>
+                          {item.title !== "予定なし" && (
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              className={`text-[var(--muted)] transition-transform ${isSelected ? "rotate-180" : ""}`}
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
                           )}
                         </div>
                       </div>
+                      {/* 詳細パネル */}
+                      {isSelected && (
+                        <div className="mt-1 p-4 rounded-xl border border-[var(--primary)]/30 bg-[var(--card-bg)] space-y-3 animate-in">
+                          <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span>{item.time} 〜 {endTime}</span>
+                          </div>
+                          {item.app && (
+                            <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                              <span>{item.app}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            <span>{item.app === "Zoom" || item.app === "Teams" ? "オンライン" : item.app === "ヘルスケア" ? "自宅 / ジム" : item.app === "Mate" ? "Mateで自動登録" : "未定"}</span>
+                          </div>
+                          <div className="pt-2 border-t border-[var(--card-border)]">
+                            <div className="text-xs text-[var(--muted)] mb-1">メモ</div>
+                            <div className="text-sm text-[var(--foreground)]">
+                              {item.app === "Mate" ? "エージェントが自動で追加した予定です" : "登録済みの予定です"}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </>
@@ -1847,6 +1903,7 @@ ${recentHistory || '（履歴なし）'}
                       onClick={() => {
                         if (day && dateKey) {
                           setSelectedDate(dateKey);
+                          setSelectedScheduleItem(null);
                         }
                       }}
                       className={`bg-[var(--card-bg)] p-1 lg:p-1 ${
