@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+import { existsSync } from "fs";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -45,16 +48,33 @@ export async function POST(request: Request) {
       model: "gpt-image-1",
       prompt: prompt,
       n: 1,
-      size: "1536x1024",
+      size: "1024x1024",
+      quality: "low",
     });
 
-    const imageUrl = response.data?.[0]?.url;
+    const imageData = response.data?.[0];
 
-    if (!imageUrl) {
-      throw new Error("Failed to generate image");
+    // gpt-image-1 は b64_json をデフォルトで返す。url がある場合はそれを使う
+    if (imageData?.url) {
+      return NextResponse.json({ imageUrl: imageData.url });
     }
 
-    return NextResponse.json({ imageUrl });
+    if (imageData?.b64_json) {
+      // base64 を画像ファイルとして保存して URL を返す
+      const generatedDir = join(process.cwd(), "public", "generated");
+      if (!existsSync(generatedDir)) {
+        await mkdir(generatedDir, { recursive: true });
+      }
+
+      const filename = `day-${date}-${Date.now()}.png`;
+      const filepath = join(generatedDir, filename);
+      const buffer = Buffer.from(imageData.b64_json, "base64");
+      await writeFile(filepath, buffer);
+
+      return NextResponse.json({ imageUrl: `/generated/${filename}` });
+    }
+
+    throw new Error("No image data in API response");
   } catch (error) {
     console.error("Image generation error:", error);
     return NextResponse.json(
