@@ -2321,60 +2321,98 @@ ${recentHistory || '（履歴なし）'}
         </div>
       </main>
 
-      {/* 右サイドバー - できること（デスクトップのみ） */}
+      {/* 右サイドバー - 今起きていること（デスクトップのみ） */}
       <aside className="hidden lg:flex lg:static lg:w-80 border-l border-[var(--card-border)] bg-[var(--card-bg)] p-4 overflow-y-auto flex-col">
         <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-4">
-          できること
+          今起きていること
         </h2>
 
-        {/* カテゴリボタン */}
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          {CAPABILITIES.map((cap) => (
-            <button
-              key={cap.id}
-              onClick={() => setSelectedCapability(selectedCapability === cap.id ? null : cap.id)}
-              className={`p-3 rounded-xl border text-left transition-all ${
-                selectedCapability === cap.id
-                  ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                  : "border-[var(--card-border)] hover:border-[var(--primary)]"
+        {/* エージェント稼働状況 */}
+        <div className="space-y-3 mb-6">
+          {agents.map(agent => (
+            <div
+              key={agent.id}
+              onClick={() => setExpandedAgent(expandedAgent === agent.id ? null : agent.id)}
+              className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                agent.status === "working"
+                  ? "border-[var(--primary)] bg-[var(--primary)]/5"
+                  : agent.status === "completed"
+                  ? "border-[var(--accent-green)] bg-green-500/5"
+                  : "border-[var(--card-border)] opacity-60"
               }`}
             >
-              <span className="text-xl">{cap.icon}</span>
-              <div className="text-sm font-medium mt-1">{cap.name}</div>
-            </button>
+              <div className="flex items-center gap-3">
+                <div className={`relative flex-shrink-0 ${agent.status === "working" ? "agent-pulse" : ""}`}>
+                  {agent.status === "completed" && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--accent-green)] rounded-full flex items-center justify-center text-white text-[8px] z-10">✓</div>
+                  )}
+                  <GameCharacter id={agent.id} size={36} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium truncate">{agent.name}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      agent.status === "working" ? "bg-[var(--primary)]/20 text-[var(--primary)]"
+                      : agent.status === "completed" ? "bg-green-500/20 text-[var(--accent-green)]"
+                      : "bg-[var(--card-border)] text-[var(--muted)]"
+                    }`}>
+                      {agent.status === "working" ? "稼働中" : agent.status === "completed" ? "完了" : "待機中"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--muted)] truncate mt-0.5">{agent.currentTask}</p>
+                  {agent.status === "working" && (
+                    <div className="w-full h-1 bg-[var(--card-border)] rounded-full overflow-hidden mt-1.5">
+                      <div className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate" style={{ width: `${agent.progress}%` }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 展開時の詳細ログ */}
+              {expandedAgent === agent.id && agent.status !== "idle" && (
+                <div className="mt-3 pt-3 border-t border-[var(--card-border)]">
+                  {agent.details.length > 0 ? (
+                    <div className="space-y-1.5">
+                      {agent.details.map((detail, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          <span className="text-[var(--muted)] whitespace-nowrap">{detail.timestamp}</span>
+                          <span>{detail.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-[var(--muted)]">ログなし</div>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
 
-        {/* 選択したカテゴリのアプリ一覧 */}
-        {selectedCapability && (
-          <div className="mt-4 pt-4 border-t border-[var(--card-border)]">
-            <h3 className="text-sm font-semibold text-[var(--muted)] mb-3">
-              {selectedCapability === "talk"
-                ? "会話できるキャラ"
-                : `${CAPABILITIES.find((c) => c.id === selectedCapability)?.name}に使えるアプリ`}
-            </h3>
+        {/* 最近の処理履歴 */}
+        {decisionHistory.length > 0 && (
+          <div className="border-t border-[var(--card-border)] pt-4">
+            <h3 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">最近の処理</h3>
             <div className="space-y-2">
-              {CAPABILITIES.find((c) => c.id === selectedCapability)?.apps.map((app, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    if ('charId' in app && app.charId) {
-                      setSelectedCharacter(app.charId as string);
-                    }
-                  }}
-                  className={`p-3 rounded-xl border transition-colors cursor-pointer ${
-                    'charId' in app && app.charId === selectedCharacter
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--card-border)] hover:border-[var(--primary)]"
-                  }`}
-                >
-                  <div className="font-medium text-sm">{app.name}</div>
-                  <p className="text-xs text-[var(--muted)] mt-1">
-                    {app.capability}
-                  </p>
+              {decisionHistory.slice(-5).reverse().map(item => (
+                <div key={item.id} className="p-2 rounded-lg bg-[var(--background)] text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.decision === "yes" ? "bg-[var(--accent-green)]" : "bg-[var(--accent-red)]"}`} />
+                    <span className="truncate">{item.summary}</span>
+                  </div>
+                  <p className="text-[var(--muted)] mt-1 pl-3.5">{item.reason}</p>
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* 何も起きていない場合 */}
+        {agents.every(a => a.status === "idle") && decisionHistory.length === 0 && (
+          <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40">
+            <div className="text-3xl mb-2">☕</div>
+            <p className="text-sm text-[var(--muted)]">現在アクティブなタスクはありません</p>
+            <p className="text-xs text-[var(--muted)] mt-1">チャットで指示するか、通知を処理してください</p>
           </div>
         )}
       </aside>
