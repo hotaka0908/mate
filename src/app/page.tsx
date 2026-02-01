@@ -114,6 +114,23 @@ const SELF_PROFILE = {
     decisionStyle: "情報を集めてから判断したい",
   },
   hobbies: {
+    favorites: {
+      items: [
+        { category: "ラーメン", value: "杉田家の濃厚豚骨醤油ラーメン（麺硬め・味濃いめ・油多め）", emoji: "🍜" },
+        { category: "漫画", value: "ワンピース（空島編が特に好き）", emoji: "📖" },
+        { category: "映画", value: "インターステラー（ドッキングシーンで毎回泣く）", emoji: "🎬" },
+        { category: "音楽", value: "Vaundyの「踊り子」", emoji: "🎵" },
+        { category: "ゲーム", value: "ゼルダの伝説 ティアーズ オブ ザ キングダム", emoji: "🎮" },
+        { category: "YouTube", value: "まこなり社長のエンジニア系動画", emoji: "📺" },
+        { category: "プログラミング言語", value: "TypeScript（型があると安心する）", emoji: "💻" },
+        { category: "場所", value: "渋谷のスタバ（TSUTAYA横の窓際席）", emoji: "☕" },
+        { category: "時間帯", value: "深夜2時（世界が静かで集中できる）", emoji: "🌙" },
+        { category: "本", value: "イーロン・マスク（ウォルター・アイザックソン著）", emoji: "📚" },
+        { category: "お菓子", value: "ブラックサンダー", emoji: "🍫" },
+        { category: "言葉", value: "Stay hungry, stay foolish.（スティーブ・ジョブズ）", emoji: "💬" },
+      ],
+      personalityInsight: "特定のものへの強いこだわりと深い没入感が特徴的。好きなものに理由やエピソードを持ち、表面的ではなく本質を追求する性格。SF・テクノロジー・起業家精神への傾倒から、未来志向で「自分の手で何かを生み出したい」という創造欲求が強い。深夜の静寂を愛する内省的な面と、ワンピースの冒険に共感する挑戦心が共存している。",
+    },
     interests: ["プログラミング", "読書", "映画鑑賞", "ランニング"],
     favoriteGenres: { music: "J-POP・洋楽", movie: "SF・アクション", book: "ビジネス・技術書" },
     recentlyInto: "AIアプリ開発",
@@ -141,6 +158,70 @@ const SELF_PROFILE = {
     currentFocus: "AIを活用したアプリ開発スキルの向上",
   },
 };
+
+// 善意の習慣（自動化タスク）
+const HABITS = [
+  {
+    id: "1",
+    name: "打ち合わせ後のフォローメール",
+    description: "打ち合わせ終了後に議事録と次のアクションをまとめたメールを自動作成・送信",
+    trigger: "カレンダーの打ち合わせ終了時",
+    app: "Gmail",
+    icon: "📧",
+    enabled: true,
+    category: "コミュニケーション",
+  },
+  {
+    id: "2",
+    name: "旅行計画の自動作成",
+    description: "カレンダーに旅行予定を入れると、交通手段・宿泊・観光スポットの計画を事前に作成",
+    trigger: "旅行予定がカレンダーに追加された時",
+    app: "カレンダー",
+    icon: "✈️",
+    enabled: true,
+    category: "プランニング",
+  },
+  {
+    id: "3",
+    name: "誕生日のお祝いメッセージ",
+    description: "連絡先の誕生日に合わせて、お祝いメッセージを自動作成・送信",
+    trigger: "連絡先の誕生日前日",
+    app: "LINE",
+    icon: "🎂",
+    enabled: true,
+    category: "コミュニケーション",
+  },
+  {
+    id: "4",
+    name: "週次レポートの下書き作成",
+    description: "毎週金曜にその週の作業内容をまとめたレポートを自動で下書き作成",
+    trigger: "毎週金曜 17:00",
+    app: "Slack",
+    icon: "📊",
+    enabled: false,
+    category: "レポート",
+  },
+  {
+    id: "5",
+    name: "天気に応じた持ち物リマインド",
+    description: "翌日の天気予報を確認し、傘や上着などの持ち物をリマインド",
+    trigger: "毎日 22:00",
+    app: "通知",
+    icon: "🌤️",
+    enabled: true,
+    category: "日常サポート",
+  },
+  {
+    id: "6",
+    name: "お礼メッセージの自動送信",
+    description: "食事や贈り物を受けた翌日にお礼のメッセージを自動作成・送信",
+    trigger: "チャットで感謝イベントを検知した時",
+    app: "LINE",
+    icon: "🙏",
+    enabled: true,
+    category: "コミュニケーション",
+  },
+];
 
 // 判断履歴の型
 type DecisionHistory = {
@@ -2240,6 +2321,44 @@ ${recentHistory || '（履歴なし）'}
                     {USER_PROFILE.currentStatus.busyLevel === "free" ? "余裕あり" : USER_PROFILE.currentStatus.busyLevel === "normal" ? "通常" : USER_PROFILE.currentStatus.busyLevel === "busy" ? "忙しい" : "超多忙"}
                   </div>
                 </div>
+
+                {/* 善意の習慣 */}
+                <div className="mt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs font-semibold text-[var(--muted)] flex items-center gap-1.5">
+                      <span>🔄</span> 善意の習慣
+                    </div>
+                    <div className="text-xs text-[var(--muted)]">
+                      {HABITS.filter(h => h.enabled).length}/{HABITS.length} 有効
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {HABITS.map((habit) => (
+                      <div key={habit.id} className={`p-3 rounded-xl bg-[var(--background)] border ${habit.enabled ? "border-[var(--primary)]/30" : "border-[var(--card-border)] opacity-50"}`}>
+                        <div className="flex items-start gap-2.5">
+                          <div className="text-lg mt-0.5">{habit.icon}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="text-sm font-medium text-[var(--foreground)]">{habit.name}</div>
+                              <div className={`w-8 h-4.5 rounded-full flex items-center transition-colors ${habit.enabled ? "bg-[var(--primary)] justify-end" : "bg-[var(--card-border)] justify-start"}`}>
+                                <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
+                              </div>
+                            </div>
+                            <div className="text-xs text-[var(--muted)] mb-1.5 leading-relaxed">{habit.description}</div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 lg:text-blue-400 flex items-center gap-1">
+                                <span className="text-[10px]">⚡</span> {habit.trigger}
+                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">
+                                {habit.app}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -2290,6 +2409,30 @@ ${recentHistory || '（履歴なし）'}
                 <span>🎯</span> 趣味・関心
               </h3>
               <div className="space-y-2">
+                {/* 最も好きなもの */}
+                <div className="p-3 rounded-xl bg-[var(--background)] border border-[var(--primary)]/20">
+                  <div className="text-sm font-medium text-[var(--foreground)] mb-2.5 flex items-center gap-1.5">
+                    <span>❤️</span> 最も好きなもの
+                  </div>
+                  <div className="space-y-1.5 mb-3">
+                    {SELF_PROFILE.hobbies.favorites.items.map((fav, i) => (
+                      <div key={i} className="flex items-start gap-2.5 p-2 rounded-lg bg-[var(--card-bg)]">
+                        <span className="text-base mt-0.5 shrink-0">{fav.emoji}</span>
+                        <div className="min-w-0">
+                          <div className="text-[10px] text-[var(--muted)] leading-tight">{fav.category}</div>
+                          <div className="text-xs font-medium text-[var(--foreground)] leading-relaxed">{fav.value}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-2.5 rounded-lg bg-purple-500/10 border border-purple-500/20">
+                    <div className="text-[10px] font-semibold text-purple-600 lg:text-purple-400 mb-1 flex items-center gap-1">
+                      <span>🔮</span> 好みから見える性格傾向
+                    </div>
+                    <div className="text-xs text-[var(--muted)] leading-relaxed">{SELF_PROFILE.hobbies.favorites.personalityInsight}</div>
+                  </div>
+                </div>
+
                 <div className="p-3 rounded-xl bg-[var(--background)]">
                   <div className="text-sm text-[var(--foreground)] mb-2">興味があること</div>
                   <div className="flex flex-wrap gap-1.5">
