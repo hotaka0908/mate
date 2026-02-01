@@ -139,7 +139,7 @@ const SELF_PROFILE = {
   },
 };
 
-// 善意の習慣（自動化タスク）
+// ルーティーン（自動化タスク）
 const HABITS = [
   {
     id: "1",
@@ -388,7 +388,7 @@ const CAPABILITIES = [
 ];
 
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
-type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode" | "self-profile";
+type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode" | "self-profile" | "privacy";
 type ChatMode = "text" | "voice";
 type NotificationMode = "manual" | "auto";
 
@@ -1829,6 +1829,20 @@ ${recentHistory || '（履歴なし）'}
             {/* メニュー */}
             <div className="space-y-2">
               <button
+                onClick={() => setProfileSection("privacy")}
+                className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
+              >
+                <span className="text-xl">🔒</span>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-[var(--foreground)]">プライバシー</div>
+                  <div className="text-xs text-[var(--muted)]">身体・健康・連絡先・生活・ワークスタイル</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              <button
                 onClick={() => setProfileSection("capabilities")}
                 className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
               >
@@ -2020,7 +2034,7 @@ ${recentHistory || '（履歴なし）'}
           </>
         )}
 
-        {profileSection === "model" && (
+        {profileSection === "privacy" && (
           <>
             {/* 戻るボタン */}
             <button
@@ -2033,135 +2047,9 @@ ${recentHistory || '（履歴なし）'}
               <span>戻る</span>
             </button>
 
-            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">AIモデル</h2>
-
-            <div className="space-y-2">
-              {LLM_MODELS.map((model) => (
-                <button
-                  key={model.id}
-                  onClick={() => setSelectedModel(model)}
-                  className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 ${
-                    selectedModel.id === model.id
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
-                  }`}
-                >
-                  <span className={`w-3 h-3 rounded-full ${selectedModel.id === model.id ? "bg-green-500" : "bg-[var(--muted)]"}`} />
-                  <div className="flex-1">
-                    <div className="font-medium text-[var(--foreground)]">{model.name}</div>
-                    <div className="text-xs text-[var(--muted)]">{model.provider}</div>
-                  </div>
-                  {selectedModel.id === model.id && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {profileSection === "mode" && (
-          <>
-            {/* 戻るボタン */}
-            <button
-              onClick={() => setProfileSection("main")}
-              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span>戻る</span>
-            </button>
-
-            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">モード</h2>
-
-            <div className="space-y-3">
-              <button
-                onClick={() => setChatMode("text")}
-                className={`w-full p-4 rounded-xl border text-left transition-all ${
-                  chatMode === "text"
-                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                    : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">💬</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-[var(--foreground)]">テキストモード</div>
-                    <div className="text-xs text-[var(--muted)] mt-1">キーボードで入力してチャット</div>
-                  </div>
-                  {chatMode === "text" && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-
-              <button
-                onClick={() => setChatMode("voice")}
-                className={`w-full p-4 rounded-xl border text-left transition-all ${
-                  chatMode === "voice"
-                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                    : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">🎙️</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-[var(--foreground)]">おしゃべりモード</div>
-                    <div className="text-xs text-[var(--muted)] mt-1">声で話しかけてリアルタイム会話</div>
-                  </div>
-                  {chatMode === "voice" && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-            </div>
-
-            {chatMode === "voice" && (
-              <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-                <div className="flex items-start gap-3">
-                  <span className="text-xl">💡</span>
-                  <div className="text-sm text-amber-600 lg:text-amber-400">
-                    おしゃべりモードではマイクボタンをタップして話しかけてください。AIがリアルタイムで音声で応答します。
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        {profileSection === "self-profile" && (
-          <>
-            {/* 戻るボタン */}
-            <button
-              onClick={() => setProfileSection("main")}
-              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-              <span>戻る</span>
-            </button>
-
-            {/* プロフィールヘッダー */}
-            <div className="flex items-center gap-4 mb-6 p-5 rounded-2xl bg-gradient-to-r from-[var(--primary)]/20 to-amber-600/10 border border-[var(--primary)]/30">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary)] to-amber-600 flex items-center justify-center text-3xl text-white shadow-lg">
-                {SELF_PROFILE.avatar}
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-[var(--foreground)]">{SELF_PROFILE.basicInfo.fullName}</h2>
-                <p className="text-sm text-[var(--muted)]">{SELF_PROFILE.basicInfo.dateOfBirth}生まれ（{SELF_PROFILE.basicInfo.age}歳）</p>
-                <div className="flex gap-2 mt-1">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/20 text-[var(--primary)]">{SELF_PROFILE.basicInfo.gender}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">{SELF_PROFILE.basicInfo.bloodType}</span>
-                </div>
-              </div>
-            </div>
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              <span>🔒</span> プライバシー
+            </h2>
 
             {/* 身体情報 */}
             <div className="mb-4">
@@ -2302,11 +2190,11 @@ ${recentHistory || '（履歴なし）'}
                   </div>
                 </div>
 
-                {/* 善意の習慣 */}
+                {/* ルーティーン */}
                 <div className="mt-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-xs font-semibold text-[var(--muted)] flex items-center gap-1.5">
-                      <span>🔄</span> 善意の習慣
+                      <span>🔄</span> ルーティーン
                     </div>
                     <div className="text-xs text-[var(--muted)]">
                       {HABITS.filter(h => h.enabled).length}/{HABITS.length} 有効
@@ -2338,6 +2226,151 @@ ${recentHistory || '（履歴なし）'}
                       </div>
                     ))}
                   </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {profileSection === "model" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">AIモデル</h2>
+
+            <div className="space-y-2">
+              {LLM_MODELS.map((model) => (
+                <button
+                  key={model.id}
+                  onClick={() => setSelectedModel(model)}
+                  className={`w-full p-4 rounded-xl border text-left transition-all flex items-center gap-3 ${
+                    selectedModel.id === model.id
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                      : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
+                  }`}
+                >
+                  <span className={`w-3 h-3 rounded-full ${selectedModel.id === model.id ? "bg-green-500" : "bg-[var(--muted)]"}`} />
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--foreground)]">{model.name}</div>
+                    <div className="text-xs text-[var(--muted)]">{model.provider}</div>
+                  </div>
+                  {selectedModel.id === model.id && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {profileSection === "mode" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4">モード</h2>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => setChatMode("text")}
+                className={`w-full p-4 rounded-xl border text-left transition-all ${
+                  chatMode === "text"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                    : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">💬</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--foreground)]">テキストモード</div>
+                    <div className="text-xs text-[var(--muted)] mt-1">キーボードで入力してチャット</div>
+                  </div>
+                  {chatMode === "text" && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+
+              <button
+                onClick={() => setChatMode("voice")}
+                className={`w-full p-4 rounded-xl border text-left transition-all ${
+                  chatMode === "voice"
+                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                    : "border-[var(--card-border)] bg-[var(--background)] hover:border-[var(--primary)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">🎙️</span>
+                  <div className="flex-1">
+                    <div className="font-medium text-[var(--foreground)]">おしゃべりモード</div>
+                    <div className="text-xs text-[var(--muted)] mt-1">声で話しかけてリアルタイム会話</div>
+                  </div>
+                  {chatMode === "voice" && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--primary)]">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  )}
+                </div>
+              </button>
+            </div>
+
+            {chatMode === "voice" && (
+              <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl">💡</span>
+                  <div className="text-sm text-amber-600 lg:text-amber-400">
+                    おしゃべりモードではマイクボタンをタップして話しかけてください。AIがリアルタイムで音声で応答します。
+                  </div>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+        {profileSection === "self-profile" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            {/* プロフィールヘッダー */}
+            <div className="flex items-center gap-4 mb-6 p-5 rounded-2xl bg-gradient-to-r from-[var(--primary)]/20 to-amber-600/10 border border-[var(--primary)]/30">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary)] to-amber-600 flex items-center justify-center text-3xl text-white shadow-lg">
+                {SELF_PROFILE.avatar}
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[var(--foreground)]">{SELF_PROFILE.basicInfo.fullName}</h2>
+                <p className="text-sm text-[var(--muted)]">{SELF_PROFILE.basicInfo.dateOfBirth}生まれ（{SELF_PROFILE.basicInfo.age}歳）</p>
+                <div className="flex gap-2 mt-1">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/20 text-[var(--primary)]">{SELF_PROFILE.basicInfo.gender}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">{SELF_PROFILE.basicInfo.bloodType}</span>
                 </div>
               </div>
             </div>
