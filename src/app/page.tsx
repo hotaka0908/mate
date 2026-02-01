@@ -388,7 +388,7 @@ const CAPABILITIES = [
 ];
 
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
-type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode" | "self-profile" | "privacy";
+type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode" | "self-profile" | "privacy" | "routine";
 type ChatMode = "text" | "voice";
 type NotificationMode = "manual" | "auto";
 
@@ -1835,7 +1835,21 @@ ${recentHistory || '（履歴なし）'}
                 <span className="text-xl">🔒</span>
                 <div className="flex-1 text-left">
                   <div className="font-medium text-[var(--foreground)]">プライバシー</div>
-                  <div className="text-xs text-[var(--muted)]">身体・健康・連絡先・生活・ワークスタイル</div>
+                  <div className="text-xs text-[var(--muted)]">身体・健康・連絡先・生活習慣</div>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              <button
+                onClick={() => setProfileSection("routine")}
+                className="w-full p-4 rounded-xl bg-[var(--background)] flex items-center gap-3 hover:bg-[var(--card-border)] transition-colors"
+              >
+                <span className="text-xl">🔄</span>
+                <div className="flex-1 text-left">
+                  <div className="font-medium text-[var(--foreground)]">ルーティーン</div>
+                  <div className="text-xs text-[var(--muted)]">ワークスタイル・自動化タスク</div>
                 </div>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-[var(--muted)]">
                   <polyline points="9 18 15 12 9 6" />
@@ -2167,6 +2181,26 @@ ${recentHistory || '（履歴なし）'}
               </div>
             </div>
 
+          </>
+        )}
+
+        {profileSection === "routine" && (
+          <>
+            {/* 戻るボタン */}
+            <button
+              onClick={() => setProfileSection("main")}
+              className="flex items-center gap-2 mb-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              <span>戻る</span>
+            </button>
+
+            <h2 className="text-lg font-bold text-[var(--foreground)] mb-4 flex items-center gap-2">
+              <span>🔄</span> ルーティーン
+            </h2>
+
             {/* ワークスタイル */}
             <div className="mb-4">
               <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
@@ -2189,44 +2223,44 @@ ${recentHistory || '（履歴なし）'}
                     {USER_PROFILE.currentStatus.busyLevel === "free" ? "余裕あり" : USER_PROFILE.currentStatus.busyLevel === "normal" ? "通常" : USER_PROFILE.currentStatus.busyLevel === "busy" ? "忙しい" : "超多忙"}
                   </div>
                 </div>
+              </div>
+            </div>
 
-                {/* ルーティーン */}
-                <div className="mt-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-xs font-semibold text-[var(--muted)] flex items-center gap-1.5">
-                      <span>🔄</span> ルーティーン
-                    </div>
-                    <div className="text-xs text-[var(--muted)]">
-                      {HABITS.filter(h => h.enabled).length}/{HABITS.length} 有効
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    {HABITS.map((habit) => (
-                      <div key={habit.id} className={`p-3 rounded-xl bg-[var(--background)] border ${habit.enabled ? "border-[var(--primary)]/30" : "border-[var(--card-border)] opacity-50"}`}>
-                        <div className="flex items-start gap-2.5">
-                          <div className="text-lg mt-0.5">{habit.icon}</div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <div className="text-sm font-medium text-[var(--foreground)]">{habit.name}</div>
-                              <div className={`w-8 h-4.5 rounded-full flex items-center transition-colors ${habit.enabled ? "bg-[var(--primary)] justify-end" : "bg-[var(--card-border)] justify-start"}`}>
-                                <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
-                              </div>
-                            </div>
-                            <div className="text-xs text-[var(--muted)] mb-1.5 leading-relaxed">{habit.description}</div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 lg:text-blue-400 flex items-center gap-1">
-                                <span className="text-[10px]">⚡</span> {habit.trigger}
-                              </span>
-                              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">
-                                {habit.app}
-                              </span>
-                            </div>
+            {/* ルーティーン一覧 */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-[var(--muted)] flex items-center gap-2">
+                  <span>⚡</span> 自動化タスク
+                </h3>
+                <div className="text-xs text-[var(--muted)]">
+                  {HABITS.filter(h => h.enabled).length}/{HABITS.length} 有効
+                </div>
+              </div>
+              <div className="space-y-2">
+                {HABITS.map((habit) => (
+                  <div key={habit.id} className={`p-3 rounded-xl bg-[var(--background)] border ${habit.enabled ? "border-[var(--primary)]/30" : "border-[var(--card-border)] opacity-50"}`}>
+                    <div className="flex items-start gap-2.5">
+                      <div className="text-lg mt-0.5">{habit.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="text-sm font-medium text-[var(--foreground)]">{habit.name}</div>
+                          <div className={`w-8 h-4.5 rounded-full flex items-center transition-colors ${habit.enabled ? "bg-[var(--primary)] justify-end" : "bg-[var(--card-border)] justify-start"}`}>
+                            <div className="w-3.5 h-3.5 rounded-full bg-white mx-0.5" />
                           </div>
                         </div>
+                        <div className="text-xs text-[var(--muted)] mb-1.5 leading-relaxed">{habit.description}</div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-600 lg:text-blue-400 flex items-center gap-1">
+                            <span className="text-[10px]">⚡</span> {habit.trigger}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--primary)]/15 text-[var(--primary)]">
+                            {habit.app}
+                          </span>
+                        </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
             </div>
           </>
