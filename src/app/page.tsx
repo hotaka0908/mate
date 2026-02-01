@@ -2148,6 +2148,7 @@ ${recentHistory || '（履歴なし）'}
               {expandedAgent && (() => {
                 const agent = agents.find(a => a.id === expandedAgent);
                 if (!agent) return null;
+                const isLast = (i: number) => i === agent.details.length - 1;
                 return (
                   <div className={`w-full max-w-md mt-4 rounded-xl p-4 transition-all duration-300 ${
                     agent.status === "completed"
@@ -2171,13 +2172,41 @@ ${recentHistory || '（履歴なし）'}
                       </div>
                     )}
                     {agent.details.length > 0 ? (
-                    <div className="space-y-1.5">
-                      {agent.details.map((detail, i) => (
-                        <div key={i} className="flex items-start gap-2 text-xs">
-                          <span className="text-[var(--muted)] whitespace-nowrap">{detail.timestamp}</span>
-                          <span>{detail.message}</span>
-                        </div>
-                      ))}
+                    <div className="space-y-0">
+                      {agent.details.map((detail, i) => {
+                        const isCurrent = isLast(i) && agent.status === "working";
+                        const isDone = !isLast(i) || agent.status === "completed";
+                        return (
+                          <div key={i} className="flex items-start gap-3 relative">
+                            {/* 縦線 */}
+                            {i < agent.details.length - 1 && (
+                              <div className="absolute left-[7px] top-[18px] w-px h-full bg-[var(--card-border)]" />
+                            )}
+                            {/* ステップドット */}
+                            <div className={`relative z-10 mt-[5px] flex-shrink-0 rounded-full ${
+                              isCurrent
+                                ? "w-[15px] h-[15px] bg-[var(--primary)] animate-pulse"
+                                : isDone
+                                ? "w-[15px] h-[15px] bg-[var(--accent-green)]"
+                                : "w-[15px] h-[15px] bg-[var(--card-border)]"
+                            }`}>
+                              {isDone && !isCurrent && (
+                                <span className="flex items-center justify-center w-full h-full text-white text-[8px]">✓</span>
+                              )}
+                            </div>
+                            {/* 工程テキスト */}
+                            <span className={`text-xs py-1.5 transition-all ${
+                              isCurrent
+                                ? "text-white font-medium"
+                                : isDone
+                                ? "text-[var(--muted)]"
+                                : "text-[var(--muted)] opacity-40"
+                            }`}>
+                              {detail.message}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                     ) : (
                       <div className="text-xs text-[var(--muted)]">タスクなし — 待機中</div>
