@@ -1895,8 +1895,8 @@ ${recentHistory || '（履歴なし）'}
           )}
         </div>
 
-        {/* 今起きていること - モバイルでは通知タブでのみ表示 */}
-        <div className={`${mobileTab === "notifications" ? "block" : "hidden"} lg:block`}>
+        {/* 今起きていること - モバイルでは通知タブでのみ表示、デスクトップでは右サイドバーに移動 */}
+        <div className={`${mobileTab === "notifications" ? "block" : "hidden"} lg:hidden`}>
           <div className="flex items-center gap-2 mb-4">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -1935,8 +1935,8 @@ ${recentHistory || '（履歴なし）'}
           </div>
         </div>
 
-        {/* スワイプカード - モバイルでは通知タブでのみ表示 */}
-        <div className={`flex-1 flex flex-col ${mobileTab === "notifications" ? "flex" : "hidden"} lg:flex`}>
+        {/* スワイプカード - モバイルでは通知タブでのみ表示、デスクトップでは右サイドバーに移動 */}
+        <div className={`flex-1 flex flex-col ${mobileTab === "notifications" ? "flex" : "hidden"} lg:hidden`}>
           {currentCard ? (
             <div
               className={`flex-1 flex flex-col rounded-2xl border border-[var(--card-border)] bg-[var(--background)] overflow-hidden transition-all duration-300 ${
@@ -2323,98 +2323,172 @@ ${recentHistory || '（履歴なし）'}
 
       {/* 右サイドバー - 今起きていること（デスクトップのみ） */}
       <aside className="hidden lg:flex lg:static lg:w-80 border-l border-[var(--card-border)] bg-[var(--card-bg)] p-4 overflow-y-auto flex-col">
-        <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider mb-4">
-          今起きていること
-        </h2>
+        {/* 今起きていること ヘッダー */}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+          <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wider">
+            今起きていること
+          </h2>
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-xs text-[var(--muted)]">
+              {notifications.length - processedCards.length} 件
+            </span>
+            <div className="flex rounded-lg overflow-hidden border border-[var(--card-border)]">
+              <button
+                onClick={() => setNotificationMode("manual")}
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
+                  notificationMode === "manual"
+                    ? "bg-[var(--primary)] text-white"
+                    : "bg-[var(--background)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Manual
+              </button>
+              <button
+                onClick={() => setNotificationMode("auto")}
+                className={`px-2 py-1 text-xs font-medium transition-colors ${
+                  notificationMode === "auto"
+                    ? "bg-[var(--primary)] text-white"
+                    : "bg-[var(--background)] text-[var(--muted)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                Auto
+              </button>
+            </div>
+          </div>
+        </div>
 
-        {/* エージェント稼働状況 */}
-        <div className="space-y-3 mb-6">
-          {agents.map(agent => (
+        {/* スワイプカード */}
+        <div className="flex-1 flex flex-col">
+          {currentCard ? (
             <div
-              key={agent.id}
-              onClick={() => setExpandedAgent(expandedAgent === agent.id ? null : agent.id)}
-              className={`p-3 rounded-xl border cursor-pointer transition-all ${
-                agent.status === "working"
-                  ? "border-[var(--primary)] bg-[var(--primary)]/5"
-                  : agent.status === "completed"
-                  ? "border-[var(--accent-green)] bg-green-500/5"
-                  : "border-[var(--card-border)] opacity-60"
+              className={`flex-1 flex flex-col rounded-2xl border border-[var(--card-border)] bg-[var(--background)] overflow-hidden transition-all duration-300 ${
+                swipeDirection === "right"
+                  ? "translate-x-full opacity-0 rotate-12"
+                  : swipeDirection === "left"
+                  ? "-translate-x-full opacity-0 -rotate-12"
+                  : ""
               }`}
             >
-              <div className="flex items-center gap-3">
-                <div className={`relative flex-shrink-0 ${agent.status === "working" ? "agent-pulse" : ""}`}>
-                  {agent.status === "completed" && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-[var(--accent-green)] rounded-full flex items-center justify-center text-white text-[8px] z-10">✓</div>
-                  )}
-                  <GameCharacter id={agent.id} size={36} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium truncate">{agent.name}</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                      agent.status === "working" ? "bg-[var(--primary)]/20 text-[var(--primary)]"
-                      : agent.status === "completed" ? "bg-green-500/20 text-[var(--accent-green)]"
-                      : "bg-[var(--card-border)] text-[var(--muted)]"
-                    }`}>
-                      {agent.status === "working" ? "稼働中" : agent.status === "completed" ? "完了" : "待機中"}
-                    </span>
+              {/* カードヘッダー */}
+              <div className="p-4 border-b border-[var(--card-border)]">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{currentCard.icon}</span>
+                  <div className="flex-1">
+                    <div className="font-medium">{currentCard.app}</div>
+                    <div className="text-xs text-[var(--muted)]">{currentCard.time}</div>
                   </div>
-                  <p className="text-xs text-[var(--muted)] truncate mt-0.5">{agent.currentTask}</p>
-                  {agent.status === "working" && (
-                    <div className="w-full h-1 bg-[var(--card-border)] rounded-full overflow-hidden mt-1.5">
-                      <div className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate" style={{ width: `${agent.progress}%` }} />
+                  {notificationMode === "auto" && isAutoProcessing && (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/30">
+                      <div className="w-2 h-2 bg-[var(--primary)] rounded-full animate-pulse" />
+                      <span className="text-xs text-[var(--primary)]">AI判断中...</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* 展開時の詳細ログ */}
-              {expandedAgent === agent.id && agent.status !== "idle" && (
-                <div className="mt-3 pt-3 border-t border-[var(--card-border)]">
-                  {agent.details.length > 0 ? (
-                    <div className="space-y-1.5">
-                      {agent.details.map((detail, i) => (
-                        <div key={i} className="flex items-start gap-2 text-xs">
-                          <span className="text-[var(--muted)] whitespace-nowrap">{detail.timestamp}</span>
-                          <span>{detail.message}</span>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-xs text-[var(--muted)]">ログなし</div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+              {/* 要約 */}
+              <div className="p-4 border-b border-[var(--card-border)]">
+                <div className="text-xs text-[var(--muted)] mb-1">要約</div>
+                <div className="font-medium">{currentCard.summary}</div>
+                <div className="text-sm text-[var(--muted)] mt-1">{currentCard.content}</div>
+              </div>
 
-        {/* 最近の処理履歴 */}
-        {decisionHistory.length > 0 && (
-          <div className="border-t border-[var(--card-border)] pt-4">
-            <h3 className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">最近の処理</h3>
-            <div className="space-y-2">
-              {decisionHistory.slice(-5).reverse().map(item => (
-                <div key={item.id} className="p-2 rounded-lg bg-[var(--background)] text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.decision === "yes" ? "bg-[var(--accent-green)]" : "bg-[var(--accent-red)]"}`} />
-                    <span className="truncate">{item.summary}</span>
+              {/* AI提案 */}
+              <div className="p-4 flex-1 flex flex-col gap-3">
+                <div className="p-3 rounded-xl bg-green-500/10 border border-green-500/30">
+                  <textarea
+                    value={refreshedSuggestions[currentCard.id]?.suggestedAction ?? currentCard.suggestedAction}
+                    onChange={(e) => {
+                      setRefreshedSuggestions({
+                        ...refreshedSuggestions,
+                        [currentCard.id]: {
+                          suggestedAction: e.target.value,
+                          declineMessage: refreshedSuggestions[currentCard.id]?.declineMessage ?? currentCard.declineMessage,
+                        },
+                      });
+                    }}
+                    className="w-full text-sm leading-relaxed text-green-400 bg-transparent resize-none focus:outline-none"
+                    rows={3}
+                  />
+                </div>
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      value={refreshedSuggestions[currentCard.id]?.declineMessage ?? currentCard.declineMessage}
+                      onChange={(e) => {
+                        setRefreshedSuggestions({
+                          ...refreshedSuggestions,
+                          [currentCard.id]: {
+                            suggestedAction: refreshedSuggestions[currentCard.id]?.suggestedAction ?? currentCard.suggestedAction,
+                            declineMessage: e.target.value,
+                          },
+                        });
+                      }}
+                      className="flex-1 text-sm leading-relaxed text-red-400 bg-transparent resize-none focus:outline-none"
+                      rows={3}
+                    />
+                    <button
+                      onClick={() => handleRefreshSuggestion("decline")}
+                      disabled={isRefreshing !== null}
+                      className="shrink-0 p-1.5 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                      title="文章をリフレッシュ"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`text-red-400 ${isRefreshing === "decline" ? "animate-spin" : ""}`}
+                      >
+                        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                        <path d="M21 3v5h-5" />
+                      </svg>
+                    </button>
                   </div>
-                  <p className="text-[var(--muted)] mt-1 pl-3.5">{item.reason}</p>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              </div>
 
-        {/* 何も起きていない場合 */}
-        {agents.every(a => a.status === "idle") && decisionHistory.length === 0 && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40">
-            <div className="text-3xl mb-2">☕</div>
-            <p className="text-sm text-[var(--muted)]">現在アクティブなタスクはありません</p>
-            <p className="text-xs text-[var(--muted)] mt-1">チャットで指示するか、通知を処理してください</p>
-          </div>
-        )}
+              {/* スワイプボタン */}
+              <div className="p-4 flex gap-3">
+                <button
+                  onClick={() => handleSwipe("left")}
+                  className="flex-1 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 font-medium hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  NO
+                </button>
+                <button
+                  onClick={() => handleSwipe("right")}
+                  className="flex-1 py-3 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 font-medium hover:bg-green-500/20 transition-colors flex items-center justify-center gap-2"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  YES
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-[var(--muted)]">
+              <div className="text-center">
+                <div className="text-4xl mb-2">✨</div>
+                <div>すべて完了しました</div>
+              </div>
+            </div>
+          )}
+        </div>
       </aside>
 
       {/* モバイル用プロフィール画面 */}
