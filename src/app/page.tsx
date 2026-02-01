@@ -590,7 +590,6 @@ export default function Home() {
   const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -1703,88 +1702,14 @@ ${recentHistory || '（履歴なし）'}
           ) : (
             // AIエージェント稼働状況表示
             <div className="flex-1 flex flex-col items-center justify-center mb-6 px-2">
-              {expandedAgent ? (
-                // 詳細表示
-                (() => {
-                  const agent = AGENTS.find(a => a.id === expandedAgent);
-                  if (!agent) return null;
-                  return (
-                    <div className="w-full max-w-lg bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 transition-all duration-300">
-                      <button
-                        onClick={() => setExpandedAgent(null)}
-                        className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] mb-4 flex items-center gap-1 transition-colors"
-                      >
-                        ← 戻る
-                      </button>
-                      <div className="flex items-center gap-4 mb-4">
-                        <GameCharacter id={agent.id} size={64} />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-bold">{agent.name}</h3>
-                            {agent.status === "working" && (
-                              <span className="w-2.5 h-2.5 bg-[var(--accent-green)] rounded-full agent-pulse" />
-                            )}
-                          </div>
-                          <p className="text-xs text-[var(--muted)]">{agent.role}</p>
-                        </div>
-                      </div>
-                      <div className="mb-4">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm font-medium">{agent.currentTask}</span>
-                          <span className="text-sm text-[var(--muted)]">{agent.progress}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-[var(--card-border)] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
-                            style={{ width: `${agent.progress}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-[var(--muted)]">タスクログ</h4>
-                        {agent.details.map((detail, i) => (
-                          <div key={i} className="flex items-start gap-2 text-sm">
-                            <span className="text-[var(--muted)] text-xs whitespace-nowrap mt-0.5">{detail.timestamp}</span>
-                            <span>{detail.message}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })()
-              ) : (
-                // 3体並列表示
-                <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {AGENTS.map(agent => (
-                    <div
-                      key={agent.id}
-                      onClick={() => setExpandedAgent(agent.id)}
-                      className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 cursor-pointer hover:border-[var(--primary)] transition-all duration-200"
-                    >
-                      <div className="flex items-center gap-3 mb-3">
-                        <GameCharacter id={agent.id} size={40} />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-sm">{agent.name}</span>
-                            {agent.status === "working" && (
-                              <span className="w-2 h-2 bg-[var(--accent-green)] rounded-full agent-pulse" />
-                            )}
-                          </div>
-                          <p className="text-[10px] text-[var(--muted)] truncate">{agent.role}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs mb-2 truncate">{agent.currentTask}</p>
-                      <div className="w-full h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
-                          style={{ width: `${agent.progress}%` }}
-                        />
-                      </div>
-                      <p className="text-[10px] text-[var(--muted)] text-right mt-1">{agent.progress}%</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <div className="flex items-end justify-center gap-8">
+                {AGENTS.map(agent => (
+                  <div key={agent.id} className="flex flex-col items-center gap-2">
+                    <GameCharacter id={agent.id} size={64} />
+                    <p className="text-[11px] text-[var(--muted)] text-center max-w-[100px] truncate">{agent.currentTask}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
