@@ -834,9 +834,11 @@ export default function Home() {
 
     setDailySchedule(prev => {
       const existing = prev[todayKey] || [];
+      const updated = [...existing, { time: mapping.calendarEvent.time, title: mapping.calendarEvent.title, app: "Mate" }];
+      updated.sort((a, b) => a.time.localeCompare(b.time));
       return {
         ...prev,
-        [todayKey]: [...existing, { time: mapping.calendarEvent.time, title: mapping.calendarEvent.title, app: "Mate" }],
+        [todayKey]: updated,
       };
     });
 
@@ -1479,9 +1481,11 @@ ${recentHistory || '（履歴なし）'}
 
         setDailySchedule(prev => {
           const existing = prev[dateKey] || [];
+          const updated = [...existing, { time: mapping.calendarEvent.time, title: mapping.calendarEvent.title, app: "Mate" }];
+          updated.sort((a, b) => a.time.localeCompare(b.time));
           return {
             ...prev,
-            [dateKey]: [...existing, { time: mapping.calendarEvent.time, title: mapping.calendarEvent.title, app: "Mate" }],
+            [dateKey]: updated,
           };
         });
 
