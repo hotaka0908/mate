@@ -1561,15 +1561,15 @@ ${recentHistory || '（履歴なし）'}
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // 日付が選択されたときに画像を生成
+  // 日付が変更されたときにエラー状態をクリアし、画像を生成
   useEffect(() => {
-    if (selectedDate && selectedDate !== "2025-01-25") {
-      // 既に生成済みでない場合のみ生成
-      if (!generatedImages[selectedDate] && !isGeneratingImage) {
-        generateImageForDate(selectedDate);
-      }
+    if (!selectedDate) return;
+    setImageGenerationError(null);
+    if (selectedDate !== "2025-01-25" && !generatedImages[selectedDate]) {
+      generateImageForDate(selectedDate);
     }
-  }, [selectedDate, generatedImages, isGeneratingImage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedDate]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1700,7 +1700,7 @@ ${recentHistory || '（履歴なし）'}
                   />
                 </div>
               ) : isGeneratingImage ? (
-                <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-square flex items-center justify-center">
+                <div className="rounded-2xl overflow-hidden mb-4 bg-gradient-to-br from-blue-400 to-purple-500 aspect-video flex items-center justify-center">
                   <div className="text-white text-center">
                     <div className="text-4xl mb-3 animate-pulse">🎨</div>
                     <div className="text-sm opacity-80">画像を生成中...</div>
