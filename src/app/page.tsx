@@ -3246,6 +3246,17 @@ ${recentHistory || '（履歴なし）'}
             <span className="text-xs">予定</span>
           </button>
           <button
+            onClick={() => setMobileTab("chat")}
+            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
+              mobileTab === "chat"
+                ? "text-[var(--primary)]"
+                : "text-[var(--muted)]"
+            }`}
+          >
+            <span className="text-xl">💬</span>
+            <span className="text-xs">チャット</span>
+          </button>
+          <button
             onClick={() => setMobileTab("notifications")}
             className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors relative ${
               mobileTab === "notifications"
@@ -3260,17 +3271,6 @@ ${recentHistory || '（履歴なし）'}
                 {notifications.length - processedCards.length}
               </span>
             )}
-          </button>
-          <button
-            onClick={() => setMobileTab("chat")}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-colors ${
-              mobileTab === "chat"
-                ? "text-[var(--primary)]"
-                : "text-[var(--muted)]"
-            }`}
-          >
-            <span className="text-xl">💬</span>
-            <span className="text-xs">チャット</span>
           </button>
           <button
             onClick={() => {
