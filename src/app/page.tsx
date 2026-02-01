@@ -137,17 +137,6 @@ const SELF_PROFILE = {
     ],
     importantPeople: ["家族", "田中", "佐藤"],
   },
-  goals: {
-    shortTerm: [
-      { goal: "AIアプリのプロトタイプ完成", deadline: "2025年3月" },
-      { goal: "TOEIC 800点", deadline: "2025年6月" },
-    ],
-    longTerm: [
-      { goal: "自分のプロダクトをリリースする", deadline: "" },
-      { goal: "エンジニアとして独立する", deadline: "" },
-    ],
-    currentFocus: "AIを活用したアプリ開発スキルの向上",
-  },
 };
 
 // 善意の習慣（自動化タスク）
@@ -2478,35 +2467,6 @@ ${recentHistory || '（履歴なし）'}
               </div>
             </div>
 
-            {/* 目標・やりたいこと */}
-            <div className="mb-4">
-              <h3 className="text-sm font-semibold text-[var(--muted)] mb-2 flex items-center gap-2">
-                <span>🚀</span> 目標・やりたいこと
-              </h3>
-              <div className="space-y-2">
-                <div className="p-3 rounded-xl bg-[var(--background)] flex items-center justify-between">
-                  <div className="text-sm text-[var(--foreground)]">今のフォーカス</div>
-                  <div className="text-sm font-bold text-[var(--primary)]">{SELF_PROFILE.goals.currentFocus}</div>
-                </div>
-                <div className="p-3 rounded-xl bg-[var(--background)]">
-                  <div className="text-sm text-[var(--foreground)] mb-2">短期目標</div>
-                  {SELF_PROFILE.goals.shortTerm.map((g, i) => (
-                    <div key={i} className="flex items-center justify-between py-1">
-                      <div className="text-sm text-[var(--muted)]">{g.goal}</div>
-                      {g.deadline && <div className="text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 lg:text-amber-400">{g.deadline}</div>}
-                    </div>
-                  ))}
-                </div>
-                <div className="p-3 rounded-xl bg-[var(--background)]">
-                  <div className="text-sm text-[var(--foreground)] mb-2">長期目標</div>
-                  {SELF_PROFILE.goals.longTerm.map((g, i) => (
-                    <div key={i} className="py-1">
-                      <div className="text-sm text-[var(--muted)]">{g.goal}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </>
         )}
       </aside>
