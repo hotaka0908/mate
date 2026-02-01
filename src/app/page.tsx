@@ -133,48 +133,33 @@ const GameCharacter = ({ id, size }: { id: string; size: number }) => {
   return null;
 };
 
-const AGENTS: Agent[] = [
+const INITIAL_AGENTS: Agent[] = [
   {
     id: "maestro",
     name: "Maestro",
     role: "タスク管理・AIオーケストレーション",
-    status: "working",
-    currentTask: "スケジュール最適化を実行中",
-    progress: 65,
-    details: [
-      { timestamp: "14:30", message: "スケジュール最適化タスクを開始" },
-      { timestamp: "14:31", message: "カレンダーデータを取得完了" },
-      { timestamp: "14:32", message: "優先度スコアリングを実行中" },
-      { timestamp: "14:33", message: "会議の重複を検出・調整中" },
-    ],
+    status: "idle",
+    currentTask: "待機中",
+    progress: 0,
+    details: [],
   },
   {
     id: "memori",
     name: "Memori",
     role: "AI会話・記憶管理",
-    status: "working",
-    currentTask: "会話履歴を分析中",
-    progress: 40,
-    details: [
-      { timestamp: "14:28", message: "会話履歴の分析を開始" },
-      { timestamp: "14:29", message: "過去24時間の会話を読み込み" },
-      { timestamp: "14:30", message: "キーワード抽出・分類中" },
-    ],
+    status: "idle",
+    currentTask: "待機中",
+    progress: 0,
+    details: [],
   },
   {
     id: "coda",
     name: "Coda",
     role: "コード生成・開発支援",
-    status: "working",
-    currentTask: "コードレビューを実行中",
-    progress: 80,
-    details: [
-      { timestamp: "14:25", message: "コードレビュータスクを開始" },
-      { timestamp: "14:26", message: "変更差分を解析完了" },
-      { timestamp: "14:27", message: "セキュリティチェック完了" },
-      { timestamp: "14:28", message: "パフォーマンス分析中" },
-      { timestamp: "14:30", message: "レビューコメント生成中" },
-    ],
+    status: "idle",
+    currentTask: "待機中",
+    progress: 0,
+    details: [],
   },
 ];
 
@@ -384,7 +369,7 @@ type DecisionHistory = {
   timestamp: Date;
 };
 
-const LIVE_CONTEXT = [
+const INITIAL_NOTIFICATIONS = [
   {
     id: "1",
     app: "Slack",
@@ -432,7 +417,7 @@ const LIVE_CONTEXT = [
 ];
 
 // カレンダーイベント（日付ベース）
-const CALENDAR_EVENTS: Record<string, { title: string; color: string; icon?: string }[]> = {
+const INITIAL_CALENDAR_EVENTS: Record<string, { title: string; color: string; icon?: string }[]> = {
   "2025-01-01": [{ title: "元日", color: "purple", icon: "⭐" }],
   "2025-01-12": [{ title: "成人の", color: "purple", icon: "⭐" }],
   "2025-01-15": [{ title: "かいざ", color: "gray", icon: "🎁" }],
@@ -444,7 +429,7 @@ const CALENDAR_EVENTS: Record<string, { title: string; color: string; icon?: str
 };
 
 // 1日のスケジュール（時間ベース）
-const DAILY_SCHEDULE: Record<string, { time: string; title: string; app: string }[]> = {
+const INITIAL_DAILY_SCHEDULE: Record<string, { time: string; title: string; app: string }[]> = {
   "2025-01-25": [
     { time: "09:00", title: "朝のルーティン", app: "ヘルスケア" },
     { time: "10:00", title: "チームスタンドアップ", app: "Zoom" },
@@ -558,6 +543,172 @@ const CAPABILITIES = [
   },
 ];
 
+// 追加通知プール
+const EXTRA_NOTIFICATIONS = [
+  {
+    id: "extra-1",
+    app: "Slack",
+    icon: "💬",
+    sender: "田中",
+    summary: "田中さんから資料共有の依頼",
+    content: "明日のプレゼン資料を共有してほしいとのこと",
+    suggestedAction: "了解です！資料を準備して共有しますね。",
+    declineMessage: "すみません、まだ資料が完成していないので、もう少しお時間いただけますか？",
+    time: "たった今",
+  },
+  {
+    id: "extra-2",
+    app: "Gmail",
+    icon: "✉️",
+    sender: "佐藤",
+    summary: "佐藤様から打ち合わせ日程の確認",
+    content: "来週の打ち合わせ日程を確認したいとのこと",
+    suggestedAction: "佐藤様、ご連絡ありがとうございます。来週は火曜と木曜が空いておりますので、ご都合の良い日をお知らせください。",
+    declineMessage: "佐藤様、申し訳ございません。来週は予定が立て込んでおり、再来週でご調整いただけますでしょうか。",
+    time: "たった今",
+  },
+  {
+    id: "extra-3",
+    app: "GitHub",
+    icon: "🐙",
+    sender: "山本",
+    summary: "Issue #89 の対応依頼",
+    content: "バグ修正のIssueがアサインされました",
+    suggestedAction: "確認しました。本日中に対応を開始します。",
+    declineMessage: "現在別タスクに集中しているため、対応が遅れる可能性があります。他のメンバーへの再アサインをご検討ください。",
+    time: "たった今",
+  },
+  {
+    id: "extra-4",
+    app: "LINE",
+    icon: "📱",
+    sender: "鈴木",
+    summary: "鈴木さんからランチのお誘い",
+    content: "明日のランチ一緒にどう？新しいお店見つけたんだけど",
+    suggestedAction: "いいね！行こう！場所教えて！",
+    declineMessage: "ごめん、明日はちょっと予定があって...また今度誘って！",
+    time: "たった今",
+  },
+];
+
+// 通知IDごとのタスクマッピング
+type TaskMapping = {
+  agentId: string;
+  taskName: string;
+  logs: string[];
+  calendarEvent: { title: string; color: string; icon: string; time: string };
+};
+
+const getTaskMapping = (cardId: string): TaskMapping | null => {
+  const mappings: Record<string, TaskMapping> = {
+    "1": {
+      agentId: "maestro",
+      taskName: "カレンダー調整中",
+      logs: [
+        "カレンダーデータを取得中...",
+        "既存の予定を確認中...",
+        "15:00の空き状況をチェック中...",
+        "MTG時間を15:00に変更中...",
+        "参加者に通知を送信中...",
+        "カレンダー更新完了",
+      ],
+      calendarEvent: { title: "MTG 15:00", color: "green", icon: "🎯", time: "15:00" },
+    },
+    "2": {
+      agentId: "memori",
+      taskName: "見積書を作成中",
+      logs: [
+        "過去の見積データを検索中...",
+        "佐藤様の取引履歴を確認中...",
+        "プロジェクト要件を分析中...",
+        "見積もり金額を算出中...",
+        "見積書テンプレートを生成中...",
+        "見積書作成完了・下書き保存",
+      ],
+      calendarEvent: { title: "見積書作成", color: "blue", icon: "📄", time: "16:00" },
+    },
+    "3": {
+      agentId: "coda",
+      taskName: "PR #142 レビュー中",
+      logs: [
+        "PRの変更差分を取得中...",
+        "コード変更を解析中...",
+        "セキュリティチェックを実行中...",
+        "パフォーマンス影響を分析中...",
+        "レビューコメントを生成中...",
+        "レビュー完了・Approve済み",
+      ],
+      calendarEvent: { title: "PR #142 レビュー完了", color: "green", icon: "✅", time: "17:00" },
+    },
+    "4": {
+      agentId: "maestro",
+      taskName: "飲み会の予定を調整中",
+      logs: [
+        "金曜日のスケジュールを確認中...",
+        "空き時間を検索中...",
+        "おすすめの店舗を検索中...",
+        "参加の返信を準備中...",
+        "カレンダーに予定を追加中...",
+        "飲み会の予定を登録完了",
+      ],
+      calendarEvent: { title: "飲み会", color: "purple", icon: "🍻", time: "19:00" },
+    },
+    "extra-1": {
+      agentId: "memori",
+      taskName: "資料を準備中",
+      logs: [
+        "共有ドライブを検索中...",
+        "プレゼン資料を特定中...",
+        "最新版を確認中...",
+        "共有リンクを生成中...",
+        "田中さんに送信中...",
+        "資料共有完了",
+      ],
+      calendarEvent: { title: "資料共有", color: "blue", icon: "📎", time: "11:00" },
+    },
+    "extra-2": {
+      agentId: "maestro",
+      taskName: "日程調整中",
+      logs: [
+        "来週のスケジュールを確認中...",
+        "空き時間を抽出中...",
+        "候補日をリストアップ中...",
+        "佐藤様に返信を準備中...",
+        "日程調整メールを送信中...",
+        "日程調整完了",
+      ],
+      calendarEvent: { title: "佐藤様打合せ", color: "blue", icon: "📅", time: "14:00" },
+    },
+    "extra-3": {
+      agentId: "coda",
+      taskName: "Issue #89 を調査中",
+      logs: [
+        "Issue内容を確認中...",
+        "関連コードを特定中...",
+        "バグの原因を分析中...",
+        "修正パッチを作成中...",
+        "テストを実行中...",
+        "修正完了・PRを作成済み",
+      ],
+      calendarEvent: { title: "Issue #89 修正", color: "green", icon: "🔧", time: "15:30" },
+    },
+    "extra-4": {
+      agentId: "maestro",
+      taskName: "ランチの予定を調整中",
+      logs: [
+        "明日のスケジュールを確認中...",
+        "ランチ時間の空きを確認中...",
+        "お店の情報を検索中...",
+        "予定をカレンダーに追加中...",
+        "鈴木さんに返信中...",
+        "ランチの予定を登録完了",
+      ],
+      calendarEvent: { title: "ランチ（鈴木）", color: "purple", icon: "🍽️", time: "12:00" },
+    },
+  };
+  return mappings[cardId] || null;
+};
+
 type MobileTab = "schedule" | "chat" | "profile" | "notifications";
 type ProfileSection = "main" | "capabilities" | "settings" | "model" | "mode" | "self-profile" | "privacy" | "routine";
 type ChatMode = "text" | "voice";
@@ -587,6 +738,11 @@ export default function Home() {
   const [notificationMode, setNotificationMode] = useState<NotificationMode>("manual");
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
   const [decisionHistory, setDecisionHistory] = useState<DecisionHistory[]>([]);
+  const [agents, setAgents] = useState<Agent[]>(INITIAL_AGENTS);
+  const [calendarEvents, setCalendarEvents] = useState<Record<string, { title: string; color: string; icon?: string }[]>>(INITIAL_CALENDAR_EVENTS);
+  const [dailySchedule, setDailySchedule] = useState<Record<string, { time: string; title: string; app: string }[]>>(INITIAL_DAILY_SCHEDULE);
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [extraNotificationIndex, setExtraNotificationIndex] = useState(0);
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
@@ -596,13 +752,112 @@ export default function Home() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioQueueRef = useRef<ArrayBuffer[]>([]);
+  const activeSimulations = useRef<Record<string, ReturnType<typeof setInterval>>>({});
 
   const handleCharacterClick = (charId: string) => {
     setJumpingChar(charId);
     setTimeout(() => setJumpingChar(null), 500);
   };
 
-  const currentCard = LIVE_CONTEXT.filter(item => !processedCards.includes(item.id))[0];
+  // エージェント稼働シミュレーション開始
+  const startAgentSimulation = (agentId: string, mapping: TaskMapping) => {
+    // 既に同一エージェントがシミュレーション中なら別エージェントにフォールバック
+    let targetAgentId = agentId;
+    if (activeSimulations.current[agentId]) {
+      const fallback = INITIAL_AGENTS.find(a => a.id !== agentId && !activeSimulations.current[a.id]);
+      if (fallback) {
+        targetAgentId = fallback.id;
+      } else {
+        return; // すべてビジー
+      }
+    }
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // エージェントをworking状態に
+    setAgents(prev => prev.map(a =>
+      a.id === targetAgentId
+        ? { ...a, status: "working" as AgentStatus, currentTask: mapping.taskName, progress: 0, details: [{ timestamp: timeStr, message: mapping.logs[0] }] }
+        : a
+    ));
+
+    let step = 1;
+    const interval = setInterval(() => {
+      if (step < mapping.logs.length) {
+        const stepNow = new Date();
+        const stepTimeStr = `${String(stepNow.getHours()).padStart(2, '0')}:${String(stepNow.getMinutes()).padStart(2, '0')}`;
+        const progressValue = Math.round(((step + 1) / mapping.logs.length) * 100);
+        const currentStep = step;
+
+        setAgents(prev => prev.map(a =>
+          a.id === targetAgentId
+            ? {
+                ...a,
+                progress: progressValue,
+                details: [...a.details, { timestamp: stepTimeStr, message: mapping.logs[currentStep] }],
+              }
+            : a
+        ));
+        step++;
+      } else {
+        // 完了
+        clearInterval(interval);
+        delete activeSimulations.current[targetAgentId];
+        onAgentComplete(targetAgentId, mapping);
+      }
+    }, 2000);
+
+    activeSimulations.current[targetAgentId] = interval;
+  };
+
+  // エージェント完了処理
+  const onAgentComplete = (agentId: string, mapping: TaskMapping) => {
+    // completed 状態に変更
+    setAgents(prev => prev.map(a =>
+      a.id === agentId
+        ? { ...a, status: "completed" as AgentStatus, progress: 100, currentTask: "完了！" }
+        : a
+    ));
+
+    // カレンダーにイベント追加
+    const today = new Date();
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    setCalendarEvents(prev => {
+      const existing = prev[todayKey] || [];
+      return {
+        ...prev,
+        [todayKey]: [...existing, { title: mapping.calendarEvent.title, color: mapping.calendarEvent.color, icon: mapping.calendarEvent.icon }],
+      };
+    });
+
+    setDailySchedule(prev => {
+      const existing = prev[todayKey] || [];
+      return {
+        ...prev,
+        [todayKey]: [...existing, { time: mapping.calendarEvent.time, title: mapping.calendarEvent.title, app: "Mate" }],
+      };
+    });
+
+    // 3秒後にidle復帰
+    setTimeout(() => {
+      setAgents(prev => prev.map(a =>
+        a.id === agentId
+          ? { ...a, status: "idle" as AgentStatus, currentTask: "待機中", progress: 0, details: [] }
+          : a
+      ));
+    }, 3000);
+  };
+
+  // 通知カードからエージェントにタスクを割り当て
+  const assignTaskToAgent = (card: typeof INITIAL_NOTIFICATIONS[0]) => {
+    const mapping = getTaskMapping(card.id);
+    if (!mapping) return;
+    startAgentSimulation(mapping.agentId, mapping);
+  };
+
+  const currentCard = notifications.filter(item => !processedCards.includes(item.id))[0];
 
   // 効果音を再生する関数
   const playSound = (type: "yes" | "no") => {
@@ -900,6 +1155,7 @@ export default function Home() {
     setTimeout(() => {
       if (direction === "right") {
         console.log("YES - 送信:", currentSuggestions.suggestedAction);
+        assignTaskToAgent(currentCard);
       } else {
         console.log("NO - 送信:", currentSuggestions.declineMessage);
       }
@@ -921,8 +1177,8 @@ export default function Home() {
     // 今日の日付とスケジュールを取得
     const today = new Date();
     const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    const todaySchedule = DAILY_SCHEDULE[todayKey] || [];
-    const todayEvents = CALENDAR_EVENTS[todayKey] || [];
+    const todaySchedule = dailySchedule[todayKey] || [];
+    const todayEvents = calendarEvents[todayKey] || [];
 
     // 現在時刻が業務時間内かチェック
     const currentHour = today.getHours();
@@ -1097,8 +1353,8 @@ ${recentHistory || '（履歴なし）'}
     setImageGenerationError(null);
 
     try {
-      const schedule = DAILY_SCHEDULE[dateKey] || [];
-      const events = CALENDAR_EVENTS[dateKey] || [];
+      const schedule = dailySchedule[dateKey] || [];
+      const events = calendarEvents[dateKey] || [];
 
       const response = await fetch("/api/generate-image", {
         method: "POST",
@@ -1205,6 +1461,26 @@ ${recentHistory || '（履歴なし）'}
     }
   }, [notificationMode, currentCard, isAutoProcessing, swipeDirection, processedCards]);
 
+  // 全通知処理済み → 5秒後に新通知を1件追加
+  useEffect(() => {
+    const unprocessed = notifications.filter(item => !processedCards.includes(item.id));
+    if (unprocessed.length === 0 && extraNotificationIndex < EXTRA_NOTIFICATIONS.length) {
+      const timer = setTimeout(() => {
+        const nextNotification = EXTRA_NOTIFICATIONS[extraNotificationIndex];
+        setNotifications(prev => [...prev, nextNotification]);
+        setExtraNotificationIndex(prev => prev + 1);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [processedCards, notifications, extraNotificationIndex]);
+
+  // シミュレーションのクリーンアップ
+  useEffect(() => {
+    return () => {
+      Object.values(activeSimulations.current).forEach(interval => clearInterval(interval));
+    };
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
       {/* モバイル用ヘッダー */}
@@ -1217,7 +1493,7 @@ ${recentHistory || '（履歴なし）'}
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
             <span className="text-xs text-[var(--muted)]">
-              {LIVE_CONTEXT.length - processedCards.length} 件
+              {notifications.length - processedCards.length} 件
             </span>
           </div>
         </div>
@@ -1333,7 +1609,7 @@ ${recentHistory || '（履歴なし）'}
                   今日の予定
                 </h3>
                 <div className="space-y-2">
-                  {(DAILY_SCHEDULE[selectedDate] || [
+                  {(dailySchedule[selectedDate] || [
                     { time: "09:00", title: "予定なし", app: "" }
                   ]).map((item, index) => (
                     <div
@@ -1428,7 +1704,7 @@ ${recentHistory || '（履歴なし）'}
                 {calendarDays.map((day, index) => {
                   const isToday = day === today.getDate() && isCurrentMonth;
                   const dateKey = day ? `${calendarDate.getFullYear()}-${String(calendarDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}` : null;
-                  const events = dateKey ? CALENDAR_EVENTS[dateKey] : null;
+                  const events = dateKey ? calendarEvents[dateKey] : null;
                   const dayOfWeek = index % 7;
                   const weekRow = Math.floor(index / 7);
                   const isCurrentWeek = weekRow === currentWeekRow;
@@ -1458,10 +1734,12 @@ ${recentHistory || '（履歴なし）'}
                       }`}>
                         {day}
                       </div>
-                      {events && events.map((event, eventIndex) => (
+                      {events && events.map((event, eventIndex) => {
+                        const isNewEvent = dateKey ? !(INITIAL_CALENDAR_EVENTS[dateKey]?.some(e => e.title === event.title)) : false;
+                        return (
                         <div
                           key={eventIndex}
-                          className={`text-[10px] px-1.5 py-0.5 rounded-full truncate mb-0.5 ${
+                          className={`text-[10px] px-1.5 py-0.5 rounded-full truncate mb-0.5 ${isNewEvent ? "calendar-event-new" : ""} ${
                             event.color === "purple"
                               ? "bg-purple-100 text-purple-700 lg:bg-purple-500/20 lg:text-purple-400"
                               : event.color === "gray"
@@ -1475,7 +1753,8 @@ ${recentHistory || '（履歴なし）'}
                         >
                           {event.icon} {event.title}
                         </div>
-                      ))}
+                        );
+                      })}
                     </>
                   )}
                     </div>
@@ -1500,7 +1779,7 @@ ${recentHistory || '（履歴なし）'}
             </h2>
             <div className="flex items-center gap-2 ml-auto">
               <span className="text-xs text-[var(--muted)]">
-                {LIVE_CONTEXT.length - processedCards.length} 件
+                {notifications.length - processedCards.length} 件
               </span>
               <div className="flex rounded-lg overflow-hidden border border-[var(--card-border)]">
                 <button
@@ -1704,32 +1983,62 @@ ${recentHistory || '（履歴なし）'}
             // AIエージェント稼働状況表示
             <div className="flex-1 flex flex-col items-center justify-center mb-6 px-2">
               <div className="flex items-end justify-center gap-8">
-                {AGENTS.map(agent => (
+                {agents.map(agent => (
                   <div
                     key={agent.id}
-                    className="flex flex-col items-center gap-2 cursor-pointer"
+                    className={`flex flex-col items-center gap-2 cursor-pointer transition-all duration-500 ${
+                      agent.status === "idle" ? "opacity-40" : agent.status === "completed" ? "opacity-100" : "opacity-100"
+                    }`}
                     onClick={() => setExpandedAgent(expandedAgent === agent.id ? null : agent.id)}
                   >
-                    <GameCharacter id={agent.id} size={64} />
-                    <p className="text-[11px] text-[var(--muted)] text-center max-w-[100px] truncate">{agent.currentTask}</p>
+                    <div className={`relative ${agent.status === "working" ? "agent-pulse" : ""}`}>
+                      {agent.status === "completed" && (
+                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-[var(--accent-green)] rounded-full flex items-center justify-center text-white text-xs z-10">
+                          ✓
+                        </div>
+                      )}
+                      <GameCharacter id={agent.id} size={64} />
+                    </div>
+                    <p className={`text-[11px] text-center max-w-[100px] truncate ${
+                      agent.status === "completed" ? "text-[var(--accent-green)] font-medium" : "text-[var(--muted)]"
+                    }`}>{agent.currentTask}</p>
+                    {agent.status === "working" && (
+                      <div className="w-16 h-1 bg-[var(--card-border)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
+                          style={{ width: `${agent.progress}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
               {expandedAgent && (() => {
-                const agent = AGENTS.find(a => a.id === expandedAgent);
+                const agent = agents.find(a => a.id === expandedAgent);
                 if (!agent) return null;
                 return (
-                  <div className="w-full max-w-md mt-4 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4">
+                  <div className={`w-full max-w-md mt-4 rounded-xl p-4 transition-all duration-300 ${
+                    agent.status === "completed"
+                      ? "bg-green-500/10 border-2 border-green-500/30"
+                      : agent.status === "idle"
+                      ? "bg-[var(--card-bg)] border border-[var(--card-border)] opacity-60"
+                      : "bg-[var(--card-bg)] border border-[var(--card-border)]"
+                  }`}>
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-bold text-sm">{agent.name} — {agent.currentTask}</span>
-                      <span className="text-xs text-[var(--muted)]">{agent.progress}%</span>
+                      {agent.status !== "idle" && (
+                        <span className={`text-xs ${agent.status === "completed" ? "text-[var(--accent-green)]" : "text-[var(--muted)]"}`}>{agent.progress}%</span>
+                      )}
                     </div>
-                    <div className="w-full h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden mb-3">
-                      <div
-                        className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
-                        style={{ width: `${agent.progress}%` }}
-                      />
-                    </div>
+                    {agent.status !== "idle" && (
+                      <div className="w-full h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden mb-3">
+                        <div
+                          className={`h-full rounded-full ${agent.status === "completed" ? "bg-[var(--accent-green)]" : "bg-[var(--accent-green)] progress-bar-animate"}`}
+                          style={{ width: `${agent.progress}%` }}
+                        />
+                      </div>
+                    )}
+                    {agent.details.length > 0 ? (
                     <div className="space-y-1.5">
                       {agent.details.map((detail, i) => (
                         <div key={i} className="flex items-start gap-2 text-xs">
@@ -1738,6 +2047,9 @@ ${recentHistory || '（履歴なし）'}
                         </div>
                       ))}
                     </div>
+                    ) : (
+                      <div className="text-xs text-[var(--muted)]">タスクなし — 待機中</div>
+                    )}
                   </div>
                 );
               })()}
@@ -2703,9 +3015,9 @@ ${recentHistory || '（履歴なし）'}
           >
             <span className="text-xl">🔔</span>
             <span className="text-xs">通知</span>
-            {LIVE_CONTEXT.length - processedCards.length > 0 && (
+            {notifications.length - processedCards.length > 0 && (
               <span className="absolute top-1 right-2 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {LIVE_CONTEXT.length - processedCards.length}
+                {notifications.length - processedCards.length}
               </span>
             )}
           </button>
