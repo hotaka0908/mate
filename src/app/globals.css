@@ -117,6 +117,58 @@ nav.fixed.bottom-0 {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* キャラクター浮遊アニメーション */
+@keyframes charFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.char-float {
+  animation: charFloat 3s ease-in-out infinite;
+}
+
+/* エージェント稼働パルスアニメーション */
+@keyframes agentPulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+.agent-pulse {
+  animation: agentPulse 1.5s ease-in-out infinite;
+}
+
+/* プログレスバーアニメーション */
+@keyframes progressBarShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.progress-bar-animate {
+  background-image: linear-gradient(
+    90deg,
+    var(--accent-green) 0%,
+    rgba(63, 185, 80, 0.6) 50%,
+    var(--accent-green) 100%
+  );
+  background-size: 200% 100%;
+  animation: progressBarShimmer 2s ease-in-out infinite;
+  transition: width 0.6s ease;
+}
+
 /* 音声波形アニメーション */
 @keyframes soundWave {
   0%, 100% {

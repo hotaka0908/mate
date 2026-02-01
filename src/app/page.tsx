@@ -7,6 +7,177 @@ type Message = {
   content: string;
 };
 
+type AgentStatus = "working" | "idle" | "completed";
+
+type AgentDetail = {
+  timestamp: string;
+  message: string;
+};
+
+type Agent = {
+  id: string;
+  name: string;
+  role: string;
+  status: AgentStatus;
+  currentTask: string;
+  progress: number;
+  details: AgentDetail[];
+};
+
+const GameCharacter = ({ id, size }: { id: string; size: number }) => {
+  if (id === "maestro") {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none"
+        className="char-float"
+      >
+        {/* シルクハット */}
+        <rect x="18" y="4" width="28" height="6" rx="2" fill="#2d333b" />
+        <rect x="22" y="0" width="20" height="8" rx="3" fill="#2d333b" />
+        <rect x="24" y="6" width="4" height="2" rx="1" fill="#c9a227" />
+        {/* 頭 */}
+        <circle cx="32" cy="18" r="9" fill="#f0c896" />
+        {/* 目 */}
+        <circle cx="29" cy="17" r="1.2" fill="#2d333b" />
+        <circle cx="35" cy="17" r="1.2" fill="#2d333b" />
+        {/* 口 */}
+        <path d="M30 21 Q32 23 34 21" stroke="#2d333b" strokeWidth="1" fill="none" strokeLinecap="round" />
+        {/* ボディ（黒スーツ） */}
+        <rect x="22" y="27" width="20" height="22" rx="6" fill="#2d333b" />
+        {/* 蝶ネクタイ */}
+        <path d="M29 29 L32 31 L35 29 L32 30 Z" fill="#c9a227" />
+        {/* ゴールドボタン */}
+        <circle cx="32" cy="35" r="1.2" fill="#c9a227" />
+        <circle cx="32" cy="40" r="1.2" fill="#c9a227" />
+        {/* 指揮棒 */}
+        <line x1="42" y1="22" x2="52" y2="10" stroke="#c9a227" strokeWidth="1.5" strokeLinecap="round" />
+        {/* 足 */}
+        <rect x="25" y="48" width="5" height="6" rx="2.5" fill="#2d333b" />
+        <rect x="34" y="48" width="5" height="6" rx="2.5" fill="#2d333b" />
+      </svg>
+    );
+  }
+
+  if (id === "memori") {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none"
+        className="char-float"
+        style={{ animationDelay: "0.5s" }}
+      >
+        {/* フード */}
+        <path d="M16 20 Q16 4 32 4 Q48 4 48 20 L46 28 L18 28 Z" fill="#6e40c9" />
+        {/* 頭 */}
+        <circle cx="32" cy="20" r="9" fill="#f0c896" />
+        {/* 目 */}
+        <circle cx="29" cy="19" r="1.2" fill="#3d2a6e" />
+        <circle cx="35" cy="19" r="1.2" fill="#3d2a6e" />
+        {/* 口 */}
+        <path d="M30 23 Q32 24.5 34 23" stroke="#3d2a6e" strokeWidth="1" fill="none" strokeLinecap="round" />
+        {/* ローブボディ */}
+        <path d="M20 28 Q20 26 22 26 L42 26 Q44 26 44 28 L46 52 Q46 54 44 54 L20 54 Q18 54 18 52 Z" fill="#a371f7" />
+        <path d="M22 26 L32 32 L42 26" fill="#6e40c9" />
+        {/* 浮遊オーブ */}
+        <circle cx="12" cy="16" r="3" fill="#d2b8ff" opacity="0.8" />
+        <circle cx="52" cy="12" r="2.5" fill="#d2b8ff" opacity="0.6" />
+        <circle cx="50" cy="24" r="2" fill="#d2b8ff" opacity="0.5" />
+      </svg>
+    );
+  }
+
+  if (id === "coda") {
+    return (
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 64 64"
+        fill="none"
+        className="char-float"
+        style={{ animationDelay: "1s" }}
+      >
+        {/* 頭 */}
+        <circle cx="32" cy="18" r="9" fill="#f0c896" />
+        {/* 髪 */}
+        <path d="M23 16 Q23 8 32 8 Q41 8 41 16" fill="#4a3728" />
+        {/* メガネ */}
+        <circle cx="28" cy="18" r="4" stroke="#e6edf3" strokeWidth="1.5" fill="none" />
+        <circle cx="36" cy="18" r="4" stroke="#e6edf3" strokeWidth="1.5" fill="none" />
+        <line x1="32" y1="18" x2="32" y2="18" stroke="#e6edf3" strokeWidth="1.5" />
+        {/* 目 */}
+        <circle cx="28" cy="18" r="1.2" fill="#1a5d2a" />
+        <circle cx="36" cy="18" r="1.2" fill="#1a5d2a" />
+        {/* 口 */}
+        <path d="M30 22 Q32 23.5 34 22" stroke="#1a5d2a" strokeWidth="1" fill="none" strokeLinecap="round" />
+        {/* パーカーボディ */}
+        <rect x="22" y="27" width="20" height="22" rx="6" fill="#3fb950" />
+        {/* フード部分 */}
+        <path d="M24 27 Q24 24 28 24 L36 24 Q40 24 40 27" fill="#238636" />
+        {/* ポケット */}
+        <rect x="26" y="38" width="12" height="6" rx="2" fill="#238636" />
+        {/* コードブラケット */}
+        <text x="8" y="40" fill="#3fb950" fontSize="12" fontFamily="monospace" fontWeight="bold">{"{"}</text>
+        <text x="50" y="40" fill="#3fb950" fontSize="12" fontFamily="monospace" fontWeight="bold">{"}"}</text>
+        {/* 足 */}
+        <rect x="25" y="48" width="5" height="6" rx="2.5" fill="#1a3a2a" />
+        <rect x="34" y="48" width="5" height="6" rx="2.5" fill="#1a3a2a" />
+      </svg>
+    );
+  }
+
+  return null;
+};
+
+const AGENTS: Agent[] = [
+  {
+    id: "maestro",
+    name: "Maestro",
+    role: "タスク管理・AIオーケストレーション",
+    status: "working",
+    currentTask: "スケジュール最適化を実行中",
+    progress: 65,
+    details: [
+      { timestamp: "14:30", message: "スケジュール最適化タスクを開始" },
+      { timestamp: "14:31", message: "カレンダーデータを取得完了" },
+      { timestamp: "14:32", message: "優先度スコアリングを実行中" },
+      { timestamp: "14:33", message: "会議の重複を検出・調整中" },
+    ],
+  },
+  {
+    id: "memori",
+    name: "Memori",
+    role: "AI会話・記憶管理",
+    status: "working",
+    currentTask: "会話履歴を分析中",
+    progress: 40,
+    details: [
+      { timestamp: "14:28", message: "会話履歴の分析を開始" },
+      { timestamp: "14:29", message: "過去24時間の会話を読み込み" },
+      { timestamp: "14:30", message: "キーワード抽出・分類中" },
+    ],
+  },
+  {
+    id: "coda",
+    name: "Coda",
+    role: "コード生成・開発支援",
+    status: "working",
+    currentTask: "コードレビューを実行中",
+    progress: 80,
+    details: [
+      { timestamp: "14:25", message: "コードレビュータスクを開始" },
+      { timestamp: "14:26", message: "変更差分を解析完了" },
+      { timestamp: "14:27", message: "セキュリティチェック完了" },
+      { timestamp: "14:28", message: "パフォーマンス分析中" },
+      { timestamp: "14:30", message: "レビューコメント生成中" },
+    ],
+  },
+];
+
 const LLM_MODELS = [
   { id: "gpt-5.2", name: "GPT-5.2", provider: "OpenAI" },
   { id: "claude-opus-4.5", name: "Opus 4.5", provider: "Anthropic" },
@@ -419,6 +590,7 @@ export default function Home() {
   const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -1529,77 +1701,90 @@ ${recentHistory || '（履歴なし）'}
               <div ref={messagesEndRef} />
             </div>
           ) : (
-            // キャラクター表示
-            <div className="flex-1 flex flex-col items-center justify-center mb-6">
-              <div className="flex items-end justify-center gap-4">
-                {/* 選択されたキャラクターのみ表示 or 全員表示 */}
-                {selectedCharacter ? (
-                  // 選択されたキャラクターを中央に大きく表示
-                  <div
-                    className={`relative cursor-pointer transition-all duration-300 ${jumpingChar === selectedCharacter ? "animate-jump" : ""}`}
-                    onClick={() => {
-                      handleCharacterClick(selectedCharacter);
-                      setSelectedCharacter(null);
-                    }}
-                  >
-                    <img
-                      src={
-                        selectedCharacter === "conductor" ? "/conductor.png" :
-                        selectedCharacter === "coder" ? "/CoderAI.png" :
-                        "/MemoryAI.png"
-                      }
-                      alt={
-                        selectedCharacter === "conductor" ? "Maestro" :
-                        selectedCharacter === "coder" ? "Coda" :
-                        "Memori"
-                      }
-                      className="w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] object-contain transition-all duration-300"
-                    />
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-[var(--muted)]">
-                      タップで全員表示に戻る
+            // AIエージェント稼働状況表示
+            <div className="flex-1 flex flex-col items-center justify-center mb-6 px-2">
+              {expandedAgent ? (
+                // 詳細表示
+                (() => {
+                  const agent = AGENTS.find(a => a.id === expandedAgent);
+                  if (!agent) return null;
+                  return (
+                    <div className="w-full max-w-lg bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-5 transition-all duration-300">
+                      <button
+                        onClick={() => setExpandedAgent(null)}
+                        className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] mb-4 flex items-center gap-1 transition-colors"
+                      >
+                        ← 戻る
+                      </button>
+                      <div className="flex items-center gap-4 mb-4">
+                        <GameCharacter id={agent.id} size={64} />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-lg font-bold">{agent.name}</h3>
+                            {agent.status === "working" && (
+                              <span className="w-2.5 h-2.5 bg-[var(--accent-green)] rounded-full agent-pulse" />
+                            )}
+                          </div>
+                          <p className="text-xs text-[var(--muted)]">{agent.role}</p>
+                        </div>
+                      </div>
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{agent.currentTask}</span>
+                          <span className="text-sm text-[var(--muted)]">{agent.progress}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-[var(--card-border)] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
+                            style={{ width: `${agent.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-[var(--muted)]">タスクログ</h4>
+                        {agent.details.map((detail, i) => (
+                          <div key={i} className="flex items-start gap-2 text-sm">
+                            <span className="text-[var(--muted)] text-xs whitespace-nowrap mt-0.5">{detail.timestamp}</span>
+                            <span>{detail.message}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  // 全員表示
-                  <>
-                    {/* MemoryAI - 左 (Memori) */}
+                  );
+                })()
+              ) : (
+                // 3体並列表示
+                <div className="w-full grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {AGENTS.map(agent => (
                     <div
-                      className={`relative cursor-pointer transition-transform ${jumpingChar === "memory" ? "animate-jump" : ""}`}
-                      onClick={() => handleCharacterClick("memory")}
+                      key={agent.id}
+                      onClick={() => setExpandedAgent(agent.id)}
+                      className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-4 cursor-pointer hover:border-[var(--primary)] transition-all duration-200"
                     >
-                      <img
-                        src="/MemoryAI.png"
-                        alt="Memori"
-                        className="w-[130px] h-[130px] sm:w-[220px] sm:h-[220px] lg:w-[358px] lg:h-[358px] object-contain"
-                      />
+                      <div className="flex items-center gap-3 mb-3">
+                        <GameCharacter id={agent.id} size={40} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-sm">{agent.name}</span>
+                            {agent.status === "working" && (
+                              <span className="w-2 h-2 bg-[var(--accent-green)] rounded-full agent-pulse" />
+                            )}
+                          </div>
+                          <p className="text-[10px] text-[var(--muted)] truncate">{agent.role}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs mb-2 truncate">{agent.currentTask}</p>
+                      <div className="w-full h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
+                          style={{ width: `${agent.progress}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-[var(--muted)] text-right mt-1">{agent.progress}%</p>
                     </div>
-
-                    {/* ConductorAI - 中央 (Maestro) */}
-                    <div
-                      className={`relative self-end cursor-pointer transition-transform ${jumpingChar === "conductor" ? "animate-jump" : ""}`}
-                      onClick={() => handleCharacterClick("conductor")}
-                    >
-                      <img
-                        src="/conductor.png"
-                        alt="Maestro"
-                        className="w-[200px] h-[200px] sm:w-[320px] sm:h-[320px] lg:w-[614px] lg:h-[614px] object-contain object-bottom"
-                      />
-                    </div>
-
-                    {/* CoderAI - 右 (Coda) */}
-                    <div
-                      className={`relative cursor-pointer transition-transform ${jumpingChar === "coder" ? "animate-jump" : ""}`}
-                      onClick={() => handleCharacterClick("coder")}
-                    >
-                      <img
-                        src="/CoderAI.png"
-                        alt="Coda"
-                        className="w-[130px] h-[130px] sm:w-[220px] sm:h-[220px] lg:w-[358px] lg:h-[358px] object-contain"
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
