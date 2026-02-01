@@ -587,6 +587,7 @@ export default function Home() {
   const [notificationMode, setNotificationMode] = useState<NotificationMode>("manual");
   const [isAutoProcessing, setIsAutoProcessing] = useState(false);
   const [decisionHistory, setDecisionHistory] = useState<DecisionHistory[]>([]);
+  const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
   const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -1704,12 +1705,42 @@ ${recentHistory || '（履歴なし）'}
             <div className="flex-1 flex flex-col items-center justify-center mb-6 px-2">
               <div className="flex items-end justify-center gap-8">
                 {AGENTS.map(agent => (
-                  <div key={agent.id} className="flex flex-col items-center gap-2">
+                  <div
+                    key={agent.id}
+                    className="flex flex-col items-center gap-2 cursor-pointer"
+                    onClick={() => setExpandedAgent(expandedAgent === agent.id ? null : agent.id)}
+                  >
                     <GameCharacter id={agent.id} size={64} />
                     <p className="text-[11px] text-[var(--muted)] text-center max-w-[100px] truncate">{agent.currentTask}</p>
                   </div>
                 ))}
               </div>
+              {expandedAgent && (() => {
+                const agent = AGENTS.find(a => a.id === expandedAgent);
+                if (!agent) return null;
+                return (
+                  <div className="w-full max-w-md mt-4 bg-[var(--card-bg)] border border-[var(--card-border)] rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-bold text-sm">{agent.name} — {agent.currentTask}</span>
+                      <span className="text-xs text-[var(--muted)]">{agent.progress}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[var(--card-border)] rounded-full overflow-hidden mb-3">
+                      <div
+                        className="h-full bg-[var(--accent-green)] rounded-full progress-bar-animate"
+                        style={{ width: `${agent.progress}%` }}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      {agent.details.map((detail, i) => (
+                        <div key={i} className="flex items-start gap-2 text-xs">
+                          <span className="text-[var(--muted)] whitespace-nowrap">{detail.timestamp}</span>
+                          <span>{detail.message}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
