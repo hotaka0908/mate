@@ -8,7 +8,29 @@ type Message = {
   content: string;
 };
 
-const SYSTEM_PROMPT = "あなたは親切なAIアシスタントです。1〜2文で会話してください。";
+const SYSTEM_PROMPT_BASE = `あなたは親切なAIアシスタントです。1〜2文で会話してください。
+
+もしユーザーがカレンダーの予定追加・変更・スケジュール登録に関する指示をした場合、
+通常の返答の末尾に以下の形式でカレンダーイベント情報を付与してください。
+
+[CALENDAR_EVENT]{"title":"イベント名","date":"YYYY-MM-DD","time":"HH:MM","color":"green"}[/CALENDAR_EVENT]
+
+- titleはイベントの簡潔な名前
+- dateはイベントの日付（YYYY-MM-DD形式）。「明日」「来週月曜」等の相対表現は今日の日付を基準に計算してください
+- timeは開始時刻（HH:MM形式）。指定がなければ適切な時刻を推定してください
+- colorはイベントの種類に応じて green / blue / purple / orange から選択
+
+カレンダーに関係ない通常の会話では[CALENDAR_EVENT]タグを付けないでください。`;
+
+const buildSystemPrompt = (): string => {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+  const dayName = dayNames[today.getDay()];
+  return `${SYSTEM_PROMPT_BASE}\n\n今日の日付: ${yyyy}-${mm}-${dd}（${dayName}曜日）`;
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -57,7 +79,7 @@ async function callOpenAI(messages: Message[], model: string): Promise<string> {
   const completion = await openai.chat.completions.create({
     model: "gpt-4o",
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
+      { role: "system", content: buildSystemPrompt() },
       ...messages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -79,7 +101,7 @@ async function callAnthropic(messages: Message[], model: string): Promise<string
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
-    system: SYSTEM_PROMPT,
+    system: buildSystemPrompt(),
     messages: messages.map((m) => ({
       role: m.role,
       content: m.content,
@@ -99,7 +121,7 @@ async function callGoogle(messages: Message[], model: string): Promise<string> {
   const genAI = new GoogleGenerativeAI(apiKey);
   const gemini = genAI.getGenerativeModel({
     model: "gemini-2.0-flash",
-    systemInstruction: SYSTEM_PROMPT,
+    systemInstruction: buildSystemPrompt(),
   });
 
   const history = messages.slice(0, -1).map((m) => ({

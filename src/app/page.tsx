@@ -1384,6 +1384,124 @@ ${recentHistory || '（履歴なし）'}
     }
   };
 
+  // AI応答からカレンダーイベントタグを抽出
+  const parseCalendarEvent = (response: string): { text: string; event: { title: string; date: string; time: string; color: string } | null } => {
+    const regex = /\[CALENDAR_EVENT\]([\s\S]*?)\[\/CALENDAR_EVENT\]/;
+    const match = response.match(regex);
+    if (!match) {
+      return { text: response, event: null };
+    }
+    const text = response.replace(regex, '').trim();
+    try {
+      const event = JSON.parse(match[1]);
+      return { text, event };
+    } catch {
+      return { text, event: null };
+    }
+  };
+
+  // チャットからカレンダータスクを開始
+  const startCalendarTaskFromChat = (eventData: { title: string; date: string; time: string; color: string }) => {
+    const mapping: TaskMapping = {
+      agentId: "maestro",
+      taskName: "カレンダーに予定を追加中",
+      logs: [
+        "カレンダーデータを取得中...",
+        "既存の予定を確認中...",
+        `${eventData.time}の空き状況をチェック中...`,
+        `「${eventData.title}」を登録中...`,
+        "カレンダー更新中...",
+        "予定の追加が完了しました",
+      ],
+      calendarEvent: { title: `${eventData.title} ${eventData.time}`, color: eventData.color, icon: "📅", time: eventData.time },
+    };
+
+    // onAgentComplete で使う日付を eventData.date にオーバーライド
+    const dateKey = eventData.date;
+
+    // maestro でシミュレーション開始
+    let targetAgentId = "maestro";
+    if (activeSimulations.current["maestro"]) {
+      const fallback = INITIAL_AGENTS.find(a => a.id !== "maestro" && !activeSimulations.current[a.id]);
+      if (fallback) {
+        targetAgentId = fallback.id;
+      } else {
+        return;
+      }
+    }
+
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    setAgents(prev => prev.map(a =>
+      a.id === targetAgentId
+        ? { ...a, status: "working" as AgentStatus, currentTask: mapping.taskName, progress: 0, details: [{ timestamp: timeStr, message: mapping.logs[0] }] }
+        : a
+    ));
+
+    let step = 1;
+    const interval = setInterval(() => {
+      if (step < mapping.logs.length) {
+        const stepNow = new Date();
+        const stepTimeStr = `${String(stepNow.getHours()).padStart(2, '0')}:${String(stepNow.getMinutes()).padStart(2, '0')}`;
+        const progressValue = Math.round(((step + 1) / mapping.logs.length) * 100);
+        const currentStep = step;
+
+        setAgents(prev => prev.map(a =>
+          a.id === targetAgentId
+            ? {
+                ...a,
+                progress: progressValue,
+                details: [...a.details, { timestamp: stepTimeStr, message: mapping.logs[currentStep] }],
+              }
+            : a
+        ));
+        step++;
+      } else {
+        clearInterval(interval);
+        delete activeSimulations.current[targetAgentId];
+
+        // 完了処理
+        setAgents(prev => prev.map(a =>
+          a.id === targetAgentId
+            ? { ...a, status: "completed" as AgentStatus, progress: 100, currentTask: "完了！" }
+            : a
+        ));
+
+        // カレンダーにイベント追加（指定日付に）
+        setCalendarEvents(prev => {
+          const existing = prev[dateKey] || [];
+          return {
+            ...prev,
+            [dateKey]: [...existing, { title: mapping.calendarEvent.title, color: mapping.calendarEvent.color, icon: mapping.calendarEvent.icon }],
+          };
+        });
+
+        setDailySchedule(prev => {
+          const existing = prev[dateKey] || [];
+          return {
+            ...prev,
+            [dateKey]: [...existing, { time: mapping.calendarEvent.time, title: mapping.calendarEvent.title, app: "Mate" }],
+          };
+        });
+
+        // 3秒後にidle復帰
+        setTimeout(() => {
+          setAgents(prev => prev.map(a =>
+            a.id === targetAgentId
+              ? { ...a, status: "idle" as AgentStatus, currentTask: "待機中", progress: 0, details: [] }
+              : a
+          ));
+        }, 3000);
+      }
+    }, 2000);
+
+    activeSimulations.current[targetAgentId] = interval;
+
+    // 詳細パネルを自動展開
+    setExpandedAgent(targetAgentId);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
@@ -1410,8 +1528,18 @@ ${recentHistory || '（履歴なし）'}
         throw new Error(data.error || "API request failed");
       }
 
-      const assistantMessage: Message = { role: "assistant", content: data.response };
+      const { text, event } = parseCalendarEvent(data.response);
+      const assistantMessage: Message = { role: "assistant", content: text };
       setMessages([...newMessages, assistantMessage]);
+
+      // カレンダーイベントが検出された場合、画面遷移してエージェント稼働
+      if (event) {
+        setTimeout(() => {
+          setMessages([]);
+          setMobileTab("schedule");
+          startCalendarTaskFromChat(event);
+        }, 1500);
+      }
     } catch (error) {
       console.error("Chat error:", error);
       const errorMessage: Message = {
