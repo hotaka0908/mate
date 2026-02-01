@@ -1,7 +1,4 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
-import { existsSync } from "fs";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -54,24 +51,14 @@ export async function POST(request: Request) {
 
     const imageData = response.data?.[0];
 
-    // gpt-image-1 は b64_json をデフォルトで返す。url がある場合はそれを使う
+    // URL がある場合はそのまま返す
     if (imageData?.url) {
       return NextResponse.json({ imageUrl: imageData.url });
     }
 
+    // b64_json の場合は Data URL として返す（Vercel等でファイル書き込みできない環境対応）
     if (imageData?.b64_json) {
-      // base64 を画像ファイルとして保存して URL を返す
-      const generatedDir = join(process.cwd(), "public", "generated");
-      if (!existsSync(generatedDir)) {
-        await mkdir(generatedDir, { recursive: true });
-      }
-
-      const filename = `day-${date}-${Date.now()}.png`;
-      const filepath = join(generatedDir, filename);
-      const buffer = Buffer.from(imageData.b64_json, "base64");
-      await writeFile(filepath, buffer);
-
-      return NextResponse.json({ imageUrl: `/generated/${filename}` });
+      return NextResponse.json({ imageUrl: `data:image/png;base64,${imageData.b64_json}` });
     }
 
     throw new Error("No image data in API response");
